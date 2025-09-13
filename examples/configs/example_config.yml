@@ -1,0 +1,128 @@
+# Example YAML configuration for shellmcp
+server:
+  name: filesystem-mcp
+  desc: MCP Server for filesystem operations
+  version: "1.0.0"
+  env:
+    NODE_ENV: production
+    DEBUG: "false"
+
+# Reusable argument definitions
+args:
+  FilePath:
+    help: Path to a file
+    type: string
+    pattern: "^[^\\0]+$"
+  
+  DirectoryPath:
+    help: Path to a directory
+    type: string
+    pattern: "^[^\\0]+$"
+  
+  BooleanFlag:
+    help: Boolean flag
+    type: boolean
+    default: false
+
+# Tool definitions
+tools:
+  ListFiles:
+    cmd: ls -la {{ path }}
+    desc: List files in a directory with detailed information
+    help-cmd: ls --help
+    args:
+      - name: path
+        help: Directory path to list
+        default: "."
+        ref: DirectoryPath
+
+  ReadFile:
+    cmd: cat {{ file }}
+    desc: Read and display the contents of a file
+    help-cmd: cat --help
+    args:
+      - name: file
+        help: File to read
+        ref: FilePath
+
+  CreateDirectory:
+    cmd: mkdir -p {{ path }}
+    desc: Create a directory (and parent directories if needed)
+    help-cmd: mkdir --help
+    args:
+      - name: path
+        help: Directory path to create
+        ref: DirectoryPath
+
+  BackupDatabase:
+    cmd: |
+      {% set backup_file = "backup_" + timestamp + ".sql" %}
+      mysqldump -h {{ host }} -u {{ user }} -p{{ password }} {{ database }} > {{ backup_file }}
+      {% if compress %}
+      gzip {{ backup_file }}
+      {% endif %}
+      echo "Backup completed: {{ backup_file }}"
+    desc: Database backup with optional compression
+    args:
+      - name: host
+        help: Database host
+        default: "localhost"
+      - name: user
+        help: Database user
+        type: string
+      - name: password
+        help: Database password
+        type: string
+      - name: database
+        help: Database name
+        type: string
+      - name: compress
+        help: Compress backup file
+        ref: BooleanFlag
+      - name: timestamp
+        help: Timestamp for backup file
+        default: "{{ now().strftime('%Y%m%d_%H%M%S') }}"
+
+  DockerContainer:
+    cmd: |
+      {% if action == 'start' %}
+      docker start {{ container }}
+      {% elif action == 'stop' %}
+      docker stop {{ container }}
+      {% elif action == 'restart' %}
+      docker restart {{ container }}
+      {% else %}
+      docker {{ action }} {{ container }}
+      {% endif %}
+    desc: Manage Docker containers
+    args:
+      - name: action
+        help: Action to perform
+        choices: ["start", "stop", "restart", "logs", "inspect"]
+      - name: container
+        help: Container name or ID
+        type: string
+
+  ConditionalDeploy:
+    cmd: |
+      {% if env == 'prod' %}
+      docker run --restart=always -d --name {{ service }} {{ image }}
+      {% elif env == 'staging' %}
+      docker run -d --name {{ service }}_staging {{ image }}
+      {% else %}
+      docker run -d --name {{ service }}_dev {{ image }}
+      {% endif %}
+    desc: Deploy service with environment-specific configuration
+    args:
+      - name: env
+        help: Deployment environment
+        choices: ["dev", "staging", "prod"]
+        default: "dev"
+      - name: service
+        help: Service name
+        type: string
+      - name: image
+        help: Docker image to deploy
+        type: string
+    env:
+      DOCKER_HOST: "unix:///var/run/docker.sock"
