@@ -45,26 +45,23 @@ tools:
       allowed_dirs: []  # Optional: Restrict to specific directories
 ```
 
-### Example Configurations
-
-#### Basic Filesystem Operations
+### Example Configuration
 
 ```yml
 server:
   name: filesystem-mcp
   desc: MCP Server for filesystem operations
-  version: "1.0.0"
 
 tools:
   ListFiles:
     cmd: ls -la $@
-    desc: List files in the current directory with detailed information
+    desc: List files in the current directory
     help-cmd: ls --help
     args:
       - name: path
         type: string
         required: false
-        help: Directory path to list (defaults to current directory)
+        help: Directory path to list
         default: "."
 
   FindFiles:
@@ -78,244 +75,16 @@ tools:
       - name: PATTERN
         type: string
         required: true
-        help: File pattern to match (supports wildcards)
+        help: File pattern to match
     security:
       allowed_dirs: ["/home", "/tmp", "/workspace"]
 
-  GrepExtract:
-    cmd: grep -n "$PATTERN" "$FILE"
-    desc: Search for patterns in files
-    args:
-      - name: PATTERN
-        type: string
-        required: true
-        help: Regular expression pattern to search for
-      - name: FILE
-        type: string
-        required: true
-        help: File path to search in
-    output:
-      format: text
-```
-
-#### Development Tools
-
-```yml
-server:
-  name: dev-tools-mcp
-  desc: MCP Server for development operations
-  env:
-    NODE_ENV: development
-
-tools:
   GitStatus:
     cmd: git status --porcelain
     desc: Get git repository status
     working_dir: $GIT_ROOT
     output:
       format: text
-
-  GitLog:
-    cmd: git log --oneline -n $COUNT
-    desc: Get recent git commit history
-    args:
-      - name: COUNT
-        type: number
-        required: false
-        default: 10
-        help: Number of commits to show
-    working_dir: $GIT_ROOT
-
-  NpmInstall:
-    cmd: npm install $PACKAGES
-    desc: Install npm packages
-    args:
-      - name: PACKAGES
-        type: string
-        required: true
-        help: Package names to install (space-separated)
-    working_dir: $PROJECT_ROOT
-    timeout: 120
-
-  DockerPs:
-    cmd: docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-    desc: List running Docker containers
-    output:
-      format: text
-```
-
-#### System Administration
-
-```yml
-server:
-  name: sysadmin-mcp
-  desc: MCP Server for system administration
-  security:
-    max_args: 5
-
-tools:
-  SystemStatus:
-    cmd: systemctl status $SERVICE
-    desc: Check system service status
-    args:
-      - name: SERVICE
-        type: string
-        required: true
-        help: System service name
-        choices: ["nginx", "apache2", "mysql", "postgresql", "redis"]
-
-  ProcessInfo:
-    cmd: ps aux | grep "$PATTERN" | grep -v grep
-    desc: Find running processes
-    args:
-      - name: PATTERN
-        type: string
-        required: true
-        help: Process name or pattern to search for
-    output:
-      format: text
-
-  DiskUsage:
-    cmd: df -h $PATH
-    desc: Check disk usage
-    args:
-      - name: PATH
-        type: string
-        required: false
-        default: "/"
-        help: Path to check disk usage for
-    output:
-      format: text
-```
-
-#### Database Operations
-
-```yml
-server:
-  name: database-mcp
-  desc: MCP Server for database operations
-  env:
-    MYSQL_HOST: localhost
-    MYSQL_USER: root
-
-tools:
-  MySQLQuery:
-    cmd: mysql -h $HOST -u $USER -p$PASSWORD -e "$QUERY" $DATABASE
-    desc: Execute MySQL query
-    args:
-      - name: HOST
-        type: string
-        required: false
-        default: $MYSQL_HOST
-        help: MySQL host
-      - name: USER
-        type: string
-        required: false
-        default: $MYSQL_USER
-        help: MySQL username
-      - name: PASSWORD
-        type: string
-        required: true
-        help: MySQL password
-      - name: DATABASE
-        type: string
-        required: true
-        help: Database name
-      - name: QUERY
-        type: string
-        required: true
-        help: SQL query to execute
-    output:
-      format: text
-
-  RedisGet:
-    cmd: redis-cli -h $HOST -p $PORT get "$KEY"
-    desc: Get value from Redis
-    args:
-      - name: HOST
-        type: string
-        required: false
-        default: "localhost"
-        help: Redis host
-      - name: PORT
-        type: number
-        required: false
-        default: 6379
-        help: Redis port
-      - name: KEY
-        type: string
-        required: true
-        help: Redis key to retrieve
-    output:
-      format: text
-```
-
-### Advanced Features
-
-#### Output Processing
-
-```yml
-tools:
-  JsonProcessor:
-    cmd: cat "$FILE" | jq "$QUERY"
-    desc: Process JSON files with jq
-    args:
-      - name: FILE
-        type: string
-        required: true
-        help: JSON file path
-      - name: QUERY
-        type: string
-        required: true
-        help: jq query expression
-    output:
-      format: json
-      filter: "jq -r ."
-
-  LogAnalyzer:
-    cmd: tail -n $LINES "$LOG_FILE" | grep "$PATTERN"
-    desc: Analyze log files
-    args:
-      - name: LOG_FILE
-        type: string
-        required: true
-        help: Log file path
-      - name: PATTERN
-        type: string
-        required: true
-        help: Search pattern
-      - name: LINES
-        type: number
-        required: false
-        default: 100
-        help: Number of lines to analyze
-    output:
-      format: text
-      filter: "grep -E 'ERROR|WARN'"
-```
-
-#### Security Constraints
-
-```yml
-tools:
-  SafeFileOp:
-    cmd: cp "$SOURCE" "$DEST"
-    desc: Safe file copy operation
-    args:
-      - name: SOURCE
-        type: string
-        required: true
-        help: Source file path
-        pattern: "^/safe/directory/.*"
-      - name: DEST
-        type: string
-        required: true
-        help: Destination file path
-        pattern: "^/safe/directory/.*"
-    security:
-      allowed_dirs: ["/safe/directory", "/tmp"]
-      max_args: 2
-      allow_stdin: false
 ```
 
 ### Variable Substitution
