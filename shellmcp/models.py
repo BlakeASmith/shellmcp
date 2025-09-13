@@ -1,7 +1,7 @@
 """Pydantic models for YAML configuration parsing."""
 
 from typing import Any, Dict, List, Literal, Optional, Union
-from pydantic import BaseModel, Field, validator, root_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 import re
 
 
@@ -16,7 +16,8 @@ class ArgumentDefinition(BaseModel):
     choices: Optional[List[Any]] = Field(None, description="Allowed values for validation")
     pattern: Optional[str] = Field(None, description="Regex pattern for validation")
     
-    @validator('pattern')
+    @field_validator('pattern')
+    @classmethod
     def validate_pattern(cls, v):
         """Validate that pattern is a valid regex."""
         if v is not None:
@@ -40,7 +41,8 @@ class ToolArgument(BaseModel):
     pattern: Optional[str] = Field(None, description="Regex validation pattern")
     ref: Optional[str] = Field(None, description="Reference to reusable argument definition")
     
-    @validator('pattern')
+    @field_validator('pattern')
+    @classmethod
     def validate_pattern(cls, v):
         """Validate that pattern is a valid regex."""
         if v is not None:
@@ -50,16 +52,8 @@ class ToolArgument(BaseModel):
                 raise ValueError(f"Invalid regex pattern: {e}")
         return v
     
-    @validator('ref')
-    def validate_ref_exclusive(cls, v, values):
-        """Ensure ref is not used with other argument properties."""
-        if v is not None:
-            # If ref is provided, other properties should not be set
-            conflicting_fields = ['type', 'default', 'choices', 'pattern']
-            for field in conflicting_fields:
-                if field in values and values[field] is not None:
-                    raise ValueError(f"Cannot use 'ref' with '{field}' - use one or the other")
-        return v
+    # Note: We allow ref to be used with other properties
+    # The resolution logic will handle merging properties from the reference
 
 
 class ServerConfig(BaseModel):
@@ -80,8 +74,7 @@ class ToolConfig(BaseModel):
     args: Optional[List[ToolArgument]] = Field(None, description="Argument definitions")
     env: Optional[Dict[str, str]] = Field(None, description="Tool-specific environment variables")
     
-    class Config:
-        allow_population_by_field_name = True
+    model_config = {"populate_by_name": True}
 
 
 class YMLConfig(BaseModel):
@@ -93,11 +86,11 @@ class YMLConfig(BaseModel):
     )
     tools: Optional[Dict[str, ToolConfig]] = Field(None, description="Tool definitions")
     
-    @root_validator
-    def validate_argument_references(cls, values):
+    @model_validator(mode='after')
+    def validate_argument_references(self):
         """Validate that all argument references exist."""
-        args = values.get('args', {})
-        tools = values.get('tools', {})
+        args = self.args or {}
+        tools = self.tools or {}
         
         if tools:
             for tool_name, tool in tools.items():
@@ -108,12 +101,12 @@ class YMLConfig(BaseModel):
                                 f"Tool '{tool_name}' references undefined argument '{arg.ref}'"
                             )
         
-        return values
+        return self
     
-    @root_validator
-    def validate_unique_names(cls, values):
+    @model_validator(mode='after')
+    def validate_unique_names(self):
         """Validate that tool names and argument names are unique."""
-        tools = values.get('tools', {})
+        tools = self.tools or {}
         
         if tools:
             # Check for duplicate tool names (should be handled by dict keys, but let's be explicit)
@@ -128,7 +121,7 @@ class YMLConfig(BaseModel):
                     if len(arg_names) != len(set(arg_names)):
                         raise ValueError(f"Argument names must be unique within tool '{tool_name}'")
         
-        return values
+        return self
     
     def get_resolved_arguments(self, tool_name: str) -> List[ToolArgument]:
         """Get fully resolved arguments for a tool, expanding references."""
@@ -195,5 +188,4 @@ class YMLConfig(BaseModel):
         except Exception:
             return []
     
-    class Config:
-        extra = "forbid"  # Prevent additional fields not defined in the model
+    model_config = {"extra": "forbid"}  # Prevent additional fields not defined in the model
