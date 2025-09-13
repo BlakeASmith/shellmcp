@@ -29,6 +29,9 @@ dev = [
 where = ["."]
 include = ["shellmcp*"]
 
+[tool.setuptools.package-data]
+shellmcp = ["templates/*.j2"]
+
 [project.scripts]
 shellmcp = "shellmcp.cli:main"
 
