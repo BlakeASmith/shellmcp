@@ -1,1 +1,0 @@
-"""Examples for shellmcp package."""

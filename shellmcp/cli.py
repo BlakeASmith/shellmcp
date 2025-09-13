@@ -216,6 +216,140 @@ def new(name: str = None, desc: str = None, version: str = None, output_file: st
         return 1
 
 
+def _collect_tool_argument(config: YMLConfig, existing_args: List[str] = None) -> Optional[ToolArgument]:
+    """
+    Collect a single tool argument from user input.
+    
+    Args:
+        config: Current configuration (for reusable args)
+        existing_args: List of already defined argument names
+    
+    Returns:
+        ToolArgument or None if user cancels
+    """
+    existing_args = existing_args or []
+    
+    # Get argument name
+    while True:
+        arg_name = get_input("Argument name", required=True)
+        if arg_name in existing_args:
+            print(f"❌ Argument '{arg_name}' already exists. Please choose a different name.")
+            continue
+        break
+    
+    # Check if user wants to use a reusable argument reference
+    use_ref = False
+    if config.args:
+        available_refs = list(config.args.keys())
+        if available_refs:
+            use_ref = get_yes_no(
+                f"Use a reusable argument reference? Available: {', '.join(available_refs)}", 
+                default=False
+            )
+    
+    if use_ref and config.args:
+        # Let user choose from available references
+        ref_name = get_choice("Select reusable argument", list(config.args.keys()))
+        return ToolArgument(
+            name=arg_name,
+            help="",  # Will be resolved from reference
+            ref=ref_name
+        )
+    
+    # Collect argument properties
+    arg_help = get_input("Argument description", required=True)
+    
+    arg_type = get_choice(
+        "Argument type",
+        ["string", "number", "boolean", "array"],
+        default="string"
+    )
+    
+    # Get default value (optional)
+    has_default = get_yes_no("Does this argument have a default value?", default=False)
+    default_value = None
+    if has_default:
+        default_input = get_input("Default value (leave empty for null)", required=False)
+        if default_input:
+            if arg_type == "number":
+                try:
+                    default_value = float(default_input) if '.' in default_input else int(default_input)
+                except ValueError:
+                    print("⚠️  Invalid number format, using string value")
+                    default_value = default_input
+            elif arg_type == "boolean":
+                default_value = default_input.lower() in ('true', '1', 'yes', 'on')
+            elif arg_type == "array":
+                default_value = [item.strip() for item in default_input.split(',')]
+            else:
+                default_value = default_input
+    
+    # Get choices (optional)
+    has_choices = get_yes_no("Does this argument have predefined choices?", default=False)
+    choices = None
+    if has_choices:
+        choices_input = get_input("Enter choices (comma-separated)", required=True)
+        choices = [choice.strip() for choice in choices_input.split(',')]
+    
+    # Get validation pattern (optional)
+    has_pattern = get_yes_no("Does this argument need regex validation?", default=False)
+    pattern = None
+    if has_pattern:
+        pattern = get_input("Enter regex pattern", required=True)
+        # Validate the pattern
+        try:
+            import re
+            re.compile(pattern)
+        except re.error as e:
+            print(f"⚠️  Invalid regex pattern: {e}")
+            pattern = None
+    
+    return ToolArgument(
+        name=arg_name,
+        help=arg_help,
+        type=arg_type,
+        default=default_value,
+        choices=choices,
+        pattern=pattern
+    )
+
+
+def _collect_tool_arguments(config: YMLConfig) -> List[ToolArgument]:
+    """
+    Collect multiple tool arguments from user input.
+    
+    Args:
+        config: Current configuration
+    
+    Returns:
+        List of ToolArgument objects
+    """
+    arguments = []
+    
+    # Ask if user wants to add arguments
+    add_args = get_yes_no("Does this tool need arguments/parameters?", default=False)
+    if not add_args:
+        return arguments
+    
+    print("\n📝 Adding tool arguments...")
+    existing_arg_names = []
+    
+    while True:
+        print(f"\n--- Argument {len(arguments) + 1} ---")
+        arg = _collect_tool_argument(config, existing_arg_names)
+        if arg:
+            arguments.append(arg)
+            existing_arg_names.append(arg.name)
+            print(f"✅ Added argument: {arg.name} ({arg.type})")
+        
+        # Ask if user wants to add more arguments
+        add_more = get_yes_no("Add another argument?", default=False)
+        if not add_more:
+            break
+    
+    return arguments
+
+
 def add_tool(config_file: str, name: str = None, cmd: str = None, desc: str = None, help_cmd: str = None) -> int:
     """
     Add a new tool to an existing server configuration.
@@ -257,11 +391,15 @@ def add_tool(config_file: str, name: str = None, cmd: str = None, desc: str = No
         if not help_cmd:
             help_cmd = get_input("Help command (optional, press Enter to skip)", required=False)
         
+        # Collect tool arguments
+        arguments = _collect_tool_arguments(config)
+        
         # Create tool configuration
         tool_config = ToolConfig(
             cmd=cmd,
             desc=desc,
-            help_cmd=help_cmd if help_cmd else None
+            help_cmd=help_cmd if help_cmd else None,
+            args=arguments if arguments else None
         )
         
         # Add tool to configuration
@@ -278,6 +416,18 @@ def add_tool(config_file: str, name: str = None, cmd: str = None, desc: str = No
         print(f"   Command: {cmd}")
         if help_cmd:
             print(f"   Help command: {help_cmd}")
+        
+        if arguments:
+            print(f"   Arguments ({len(arguments)}):")
+            for arg in arguments:
+                arg_info = f"     • {arg.name} ({arg.type})"
+                if arg.ref:
+                    arg_info += f" [ref: {arg.ref}]"
+                else:
+                    arg_info += f": {arg.help}"
+                if arg.default is not None:
+                    arg_info += f" (default: {arg.default})"
+                print(arg_info)
         
         return 0
         
