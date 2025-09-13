@@ -1,6 +1,6 @@
 # ShellMCP CLI Interface
 
-The ShellMCP CLI provides a comprehensive command-line interface for validating and inspecting YAML configuration files using Google Fire.
+The ShellMCP CLI provides a command-line interface for validating YAML configuration files using Google Fire.
 
 ## Installation
 
@@ -58,53 +58,6 @@ The `validate` command performs comprehensive validation including:
 3. **Template Validation**: Checks Jinja2 template syntax
 4. **Reference Resolution**: Validates argument references
 5. **Consistency Checks**: Ensures template variables have corresponding arguments
-
-### `info`
-
-Show detailed information about a configuration file or specific tool.
-
-```bash
-shellmcp info <config_file> [tool_name]
-```
-
-**Arguments:**
-- `config_file`: Path to the YAML configuration file
-- `tool_name`: Optional specific tool name to show details for
-
-**Examples:**
-
-```bash
-# Show general configuration information
-shellmcp info config.yml
-
-# Show detailed information for a specific tool
-shellmcp info config.yml BackupDatabase
-```
-
-### `list_tools`
-
-List all tools in a configuration file with their validation status.
-
-```bash
-shellmcp list_tools <config_file>
-```
-
-**Arguments:**
-- `config_file`: Path to the YAML configuration file
-
-**Example:**
-
-```bash
-shellmcp list_tools config.yml
-```
-
-**Output:**
-```
-🔧 Available Tools:
-   ✅ ListFiles: List files in a directory with detailed information
-   ✅ ReadFile: Read and display the contents of a file
-   ❌ InvalidTool: Tool with invalid template syntax
-```
 
 ## Output Formats
 
