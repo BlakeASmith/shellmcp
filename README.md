@@ -14,8 +14,6 @@ server:
   version: string       # Optional: Server version (default: "1.0.0")
   env:                  # Optional: Environment variables
     VAR_NAME: value
-  working_dir: string   # Optional: Working directory for commands
-  timeout: integer      # Optional: Command timeout in seconds (default: 30)
 ```
 
 ### Tool Configuration
