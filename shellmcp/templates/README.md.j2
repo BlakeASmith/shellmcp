@@ -53,59 +53,33 @@ pip install -r requirements.txt
 python {{ config.server.name.replace('-', '_') }}_server.py
 ```
 
-## MCP Configuration
+## Amazon Q CLI Configuration
 
-The generated `mcp.json` file contains the configuration needed to integrate this server with MCP-compatible editors and clients.
+The generated `amazon-q-config.json` file contains the configuration needed to integrate this server with Amazon Q CLI for enhanced AI assistance.
 
 ### Quick Setup
 
-1. **Copy the MCP configuration** from the generated `mcp.json` file
-2. **Add to your editor's MCP configuration** (see platform-specific instructions below)
-3. **Restart your editor**
-
-### Platform-Specific Instructions
-
-#### Claude Desktop
-- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`  
-- **Linux**: `~/.config/Claude/claude_desktop_config.json`
-
-#### Cursor Editor
-- Add to Cursor settings under MCP configuration
-- Restart Cursor after configuration
-
-#### Visual Studio Code
-- Install MCP extension
-- Add configuration to VS Code settings
-- Reload VS Code
-
-#### Neovim
-- Use MCP plugin with the provided configuration
-- Run `:PackerSync` to install
-
-#### Helix Editor
-- Add to `~/.config/helix/config.toml`
-- Restart Helix
-
-#### Amazon Q CLI
-- Install Amazon Q CLI: `curl -sSL https://amazon-q-cli.s3.amazonaws.com/install.sh | bash`
-- Configure AWS credentials: `aws configure` or `aws sso login`
-- Add MCP configuration to `~/.config/amazon-q/cli-config.json` (Linux/macOS) or `%APPDATA%\Amazon\Q\cli-config.json` (Windows)
-- Start Amazon Q CLI: `amazon-q`
-- Use `@tools` command to access your MCP tools
+1. **Install Amazon Q CLI**: `curl -sSL https://amazon-q-cli.s3.amazonaws.com/install.sh | bash`
+2. **Configure AWS credentials**: `aws configure` or `aws sso login`
+3. **Copy Amazon Q configuration** from the generated `amazon-q-config.json` file
+4. **Add to Amazon Q CLI configuration**:
+   - **Linux/macOS**: `~/.config/amazon-q/cli-config.json`
+   - **Windows**: `%APPDATA%\Amazon\Q\cli-config.json`
+5. **Start Amazon Q CLI**: `amazon-q`
+6. **Use `@tools` command** to access your MCP tools
 
 ### Configuration Parameters
 
-- **`command`**: Python interpreter command
+- **`command`**: Python interpreter command (uses virtual environment path)
 - **`args`**: Server script path and arguments
 - **`cwd`**: Working directory for the server
-- **`env`**: Environment variables (PYTHONPATH, etc.)
+- **`env`**: Environment variables (PYTHONPATH, AWS_PROFILE, etc.)
 
 ### Testing Your Configuration
 
 1. **Manual test**: Run the server directly to ensure it starts
-2. **Check tools**: Verify tools appear in your editor's MCP interface
-3. **Test commands**: Try using the generated tools through the editor
+2. **Check Amazon Q CLI**: Use `@tools` command to see available tools
+3. **Test commands**: Try using the generated tools through Amazon Q CLI
 
 ## Tools
 

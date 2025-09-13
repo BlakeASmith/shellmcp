@@ -117,14 +117,6 @@ def generate(config_file: str, output_dir: str = None, verbose: bool = False) ->
         # Generate README.md
         readme_file = generator.generate_readme(config, str(output_dir / "README.md"))
         
-        # Generate MCP configuration
-        mcp_config_file = generator.generate_mcp_config(
-            config, 
-            str(output_dir / "mcp.json"),
-            str(server_file),
-            str(output_dir)
-        )
-        
         # Generate Amazon Q CLI configuration
         amazon_q_config_file = generator.generate_amazon_q_config(
             config,
@@ -138,7 +130,6 @@ def generate(config_file: str, output_dir: str = None, verbose: bool = False) ->
         print(f"🐍 Server file: {server_file}")
         print(f"📦 Requirements: {requirements_file}")
         print(f"📖 Documentation: {readme_file}")
-        print(f"⚙️  MCP Config: {mcp_config_file}")
         print(f"🔧 Amazon Q Config: {amazon_q_config_file}")
         
         if verbose:
@@ -150,11 +141,6 @@ def generate(config_file: str, output_dir: str = None, verbose: bool = False) ->
             print(f"   # venv\\Scripts\\activate  # Windows")
             print(f"   pip install -r requirements.txt")
             print(f"   python {Path(server_file).name}")
-            
-            print(f"\n⚙️  To configure MCP clients:")
-            print(f"   Copy the contents of {Path(mcp_config_file).name}")
-            print(f"   Add to your editor's MCP configuration file")
-            print(f"   See README.md for detailed instructions")
             
             print(f"\n🔧 To configure Amazon Q CLI:")
             print(f"   Copy the contents of {Path(amazon_q_config_file).name}")
