@@ -1,72 +1,74 @@
 """Utility functions for user input and file operations."""
 
 import yaml
+import sys
 from pathlib import Path
 from typing import List, Optional
+import questionary
 from .parser import YMLParser
 from .models import YMLConfig, ServerConfig
 
 
 def get_input(prompt: str, default: str = None, required: bool = True) -> str:
-    """Get user input with optional default value."""
-    if default:
-        full_prompt = f"{prompt} [{default}]: "
-    else:
-        full_prompt = f"{prompt}: "
-    
-    while True:
-        value = input(full_prompt).strip()
-        if value:
-            return value
-        elif default:
-            return default
-        elif not required:
-            return ""
+    """Get user input with optional default value using questionary."""
+    try:
+        if required:
+            result = questionary.text(
+                prompt,
+                default=default or "",
+                validate=lambda x: len(x.strip()) > 0 if required else True
+            ).ask()
         else:
-            print("This field is required. Please enter a value.")
+            result = questionary.text(
+                prompt,
+                default=default or ""
+            ).ask()
+        
+        if result is None:
+            print("Operation cancelled by user.")
+            sys.exit(0)
+        
+        return result.strip() if result else (default or "")
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user.")
+        sys.exit(0)
 
 
 def get_choice(prompt: str, choices: List[str], default: str = None) -> str:
-    """Get user choice from a list of options."""
-    print(f"\n{prompt}")
-    for i, choice in enumerate(choices, 1):
-        marker = " (default)" if choice == default else ""
-        print(f"  {i}. {choice}{marker}")
-    
-    while True:
-        try:
-            choice_input = input(f"Enter choice (1-{len(choices)}): ").strip()
-            if not choice_input and default:
-                return default
-            
-            choice_num = int(choice_input)
-            if 1 <= choice_num <= len(choices):
-                return choices[choice_num - 1]
-            else:
-                print(f"Please enter a number between 1 and {len(choices)}")
-        except ValueError:
-            print("Please enter a valid number")
+    """Get user choice from a list of options using questionary."""
+    try:
+        result = questionary.select(
+            prompt,
+            choices=choices,
+            default=default
+        ).ask()
+        
+        if result is None:
+            print("Operation cancelled by user.")
+            sys.exit(0)
+        
+        return result
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user.")
+        sys.exit(0)
 
 
 def get_yes_no(prompt: str, default: bool = None) -> bool:
-    """Get yes/no input from user."""
-    if default is True:
-        full_prompt = f"{prompt} [Y/n]: "
-    elif default is False:
-        full_prompt = f"{prompt} [y/N]: "
-    else:
-        full_prompt = f"{prompt} [y/n]: "
-    
-    while True:
-        value = input(full_prompt).strip().lower()
-        if value in ['y', 'yes']:
-            return True
-        elif value in ['n', 'no']:
-            return False
-        elif value == "" and default is not None:
-            return default
-        else:
-            print("Please enter 'y' for yes or 'n' for no")
+    """Get yes/no input from user using questionary."""
+    try:
+        result = questionary.confirm(
+            prompt,
+            default=default or False
+        ).ask()
+        
+        if result is None:
+            print("Operation cancelled by user.")
+            sys.exit(0)
+        
+        return result
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user.")
+        sys.exit(0)
 
 
 def save_config(config: YMLConfig, file_path: str) -> None:
