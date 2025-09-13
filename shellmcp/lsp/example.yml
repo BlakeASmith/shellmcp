@@ -4,7 +4,7 @@ server:
 
 tools:
   Hello:
-    cmd: echo "Hello {{ name }}"
+    cmd: echo "Hello World"
     desc: Say hello
     args:
       - name: name

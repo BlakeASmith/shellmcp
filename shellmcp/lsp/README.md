@@ -4,9 +4,9 @@ LSP server providing autocomplete for shellmcp YAML configuration files.
 
 ## Features
 
-- **Autocomplete**: Comprehensive autocomplete for shellmcp YAML keys and values
-- **Jinja2 Support**: Autocomplete for Jinja2 template syntax
+- **Autocomplete**: Simple autocomplete for shellmcp YAML keys and values
 - **Type Completions**: Built-in type suggestions (string, number, boolean, array)
+- **YAML Keywords**: Basic YAML keyword completions (true, false, null)
 
 ## Installation
 
@@ -59,14 +59,10 @@ The LSP server provides autocomplete without requiring schema configuration, but
 - `boolean` - True/false value
 - `array` - List of values
 
-### Jinja2 Templates
-- `{{` - Variable interpolation
-- `{%` - Control structure
-- `{#` - Comment
-- `if`, `else`, `elif`, `endif` - Conditional logic
-- `for`, `endfor` - Loops
-- `set` - Variable assignment
-- `now` - Current timestamp
+### YAML Keywords
+- `true` - YAML true value
+- `false` - YAML false value
+- `null` - YAML null value
 
 ## Example
 
@@ -77,7 +73,7 @@ server:
 
 tools:
   Hello:
-    cmd: echo "Hello {{ name }}"
+    cmd: echo "Hello World"
     desc: Say hello
     args:
       - name: name

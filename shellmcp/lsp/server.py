@@ -1,4 +1,4 @@
-"""LSP server focused on autocomplete for shellmcp YAML files."""
+"""LSP server focused on simple autocomplete for shellmcp YAML files."""
 
 import logging
 from typing import List
@@ -23,9 +23,9 @@ logger = logging.getLogger(__name__)
 # Create server instance
 server = LanguageServer("shellmcp-lsp", "0.1.0")
 
-# ShellMCP completions
+# ShellMCP completions - focused on simple values
 COMPLETIONS = {
-    # Root level
+    # Root level keys
     "server": "Server configuration",
     "tools": "Tool definitions", 
     "resources": "Resource definitions",
@@ -39,7 +39,7 @@ COMPLETIONS = {
     "env": "Environment variables",
     
     # Tool properties
-    "cmd": "Shell command (supports Jinja2 templates)",
+    "cmd": "Shell command",
     "help-cmd": "Command to get help text",
     "args": "Tool arguments",
     
@@ -50,7 +50,7 @@ COMPLETIONS = {
     "text": "Direct text content",
     
     # Prompt properties
-    "template": "Jinja2 template content",
+    "template": "Template content",
     
     # Argument properties
     "help": "Help text",
@@ -60,7 +60,7 @@ COMPLETIONS = {
     "pattern": "Regex pattern",
     "ref": "Reference to reusable argument",
     
-    # Types
+    # Simple types
     "string": "Text value",
     "number": "Numeric value", 
     "boolean": "True/false value",
@@ -80,7 +80,7 @@ def initialize(params: InitializeParams):
         "capabilities": {
             "completionProvider": {
                 "resolveProvider": False,
-                "triggerCharacters": [":", " ", "-", "{", "%"]
+                "triggerCharacters": [":", " "]
             }
         }
     }
@@ -88,7 +88,7 @@ def initialize(params: InitializeParams):
 
 @server.feature(COMPLETION)
 def completion(params: CompletionParams) -> CompletionList:
-    """Provide autocomplete suggestions."""
+    """Provide simple autocomplete suggestions."""
     try:
         completions = []
         
@@ -108,28 +108,6 @@ def completion(params: CompletionParams) -> CompletionList:
                 label=key,
                 kind=kind,
                 detail=detail
-            ))
-        
-        # Add Jinja2 template completions
-        jinja2_completions = [
-            ("{{", "Variable interpolation"),
-            ("{%", "Control structure"),
-            ("{#", "Comment"),
-            ("if", "If statement"),
-            ("else", "Else clause"),
-            ("elif", "Else if clause"),
-            ("endif", "End if"),
-            ("for", "For loop"),
-            ("endfor", "End for"),
-            ("set", "Variable assignment"),
-            ("now", "Current timestamp"),
-        ]
-        
-        for key, detail in jinja2_completions:
-            completions.append(CompletionItem(
-                label=key,
-                kind=CompletionItemKind.Keyword,
-                detail=f"Jinja2: {detail}"
             ))
         
         return CompletionList(is_incomplete=False, items=completions)
