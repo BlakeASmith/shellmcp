@@ -1,0 +1,4 @@
+server:
+  name: Refactored Server
+  desc: Testing refactored CLI
+  version: 2.0.0
