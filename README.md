@@ -135,9 +135,8 @@ tools:
         choices: ["build", "test", "clean", "install"]
 ```
 
-### Local Script Examples
+### Local Script Example
 
-#### Shell Scripts
 ```yml
 tools:
   BackupDatabase:
@@ -149,38 +148,6 @@ tools:
       - name: BACKUP_DIR
         help: Directory to store backup
         default: "./backups"
-
-  DeployApp:
-    cmd: ./deploy.sh $ENV
-    desc: Deploy application
-    args:
-      - name: ENV
-        help: Environment to deploy to
-        choices: ["dev", "staging", "prod"]
-```
-
-#### Python Scripts
-```yml
-tools:
-  DataProcessor:
-    cmd: python scripts/process_data.py --input "$INPUT" --format "$FORMAT"
-    desc: Process data using Python script
-    args:
-      - name: INPUT
-        help: Input data file
-      - name: FORMAT
-        help: Output format
-        choices: ["json", "csv", "xml"]
-        default: "json"
-
-  BuildProject:
-    cmd: make $TARGET
-    desc: Build project using Make
-    args:
-      - name: TARGET
-        help: Make target
-        choices: ["all", "debug", "release", "clean"]
-        default: "all"
 ```
 
 ### Jinja2 Template Support
