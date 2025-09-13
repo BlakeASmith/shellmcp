@@ -20,6 +20,9 @@ from pygls.server import LanguageServer
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Create server instance
+server = LanguageServer("shellmcp-lsp", "0.1.0")
+
 # ShellMCP completions
 COMPLETIONS = {
     # Root level
@@ -70,87 +73,77 @@ COMPLETIONS = {
 }
 
 
-class ShellMCPLanguageServer(LanguageServer):
-    """LSP server focused on autocomplete for shellmcp YAML files."""
-    
-    def __init__(self):
-        super().__init__("shellmcp-lsp", "0.1.0")
-        self._setup_handlers()
-    
-    def _setup_handlers(self):
-        """Set up LSP method handlers."""
-        self.feature(INITIALIZE)(self._initialize)
-        self.feature(COMPLETION)(self._completion)
-    
-    def _initialize(self, params: InitializeParams):
-        """Initialize the language server."""
-        return {
-            "capabilities": {
-                "completionProvider": {
-                    "resolveProvider": False,
-                    "triggerCharacters": [":", " ", "-", "{", "%"]
-                }
+@server.feature(INITIALIZE)
+def initialize(params: InitializeParams):
+    """Initialize the language server."""
+    return {
+        "capabilities": {
+            "completionProvider": {
+                "resolveProvider": False,
+                "triggerCharacters": [":", " ", "-", "{", "%"]
             }
         }
-    
-    def _completion(self, params: CompletionParams) -> CompletionList:
-        """Provide autocomplete suggestions."""
-        try:
-            completions = []
-            
-            # Add all available completions
-            for key, detail in COMPLETIONS.items():
-                # Determine completion kind based on key
-                if key in ["server", "tools", "resources", "prompts", "args"]:
-                    kind = CompletionItemKind.Module
-                elif key in ["name", "desc", "version", "env", "cmd", "help-cmd", "args", "uri", "mime_type", "file", "text", "template", "help", "type", "default", "choices", "pattern", "ref"]:
-                    kind = CompletionItemKind.Property
-                elif key in ["string", "number", "boolean", "array"]:
-                    kind = CompletionItemKind.EnumMember
-                else:
-                    kind = CompletionItemKind.Keyword
-                
-                completions.append(CompletionItem(
-                    label=key,
-                    kind=kind,
-                    detail=detail
-                ))
-            
-            # Add Jinja2 template completions
-            jinja2_completions = [
-                ("{{", "Variable interpolation"),
-                ("{%", "Control structure"),
-                ("{#", "Comment"),
-                ("if", "If statement"),
-                ("else", "Else clause"),
-                ("elif", "Else if clause"),
-                ("endif", "End if"),
-                ("for", "For loop"),
-                ("endfor", "End for"),
-                ("set", "Variable assignment"),
-                ("now", "Current timestamp"),
-            ]
-            
-            for key, detail in jinja2_completions:
-                completions.append(CompletionItem(
-                    label=key,
-                    kind=CompletionItemKind.Keyword,
-                    detail=f"Jinja2: {detail}"
-                ))
-            
-            return CompletionList(is_incomplete=False, items=completions)
-            
-        except Exception as e:
-            logger.error(f"Error in completion: {e}")
-            return CompletionList(is_incomplete=False, items=[])
+    }
 
 
-def create_server() -> ShellMCPLanguageServer:
-    """Create and return a new language server instance."""
-    return ShellMCPLanguageServer()
+@server.feature(COMPLETION)
+def completion(params: CompletionParams) -> CompletionList:
+    """Provide autocomplete suggestions."""
+    try:
+        completions = []
+        
+        # Add all available completions
+        for key, detail in COMPLETIONS.items():
+            # Determine completion kind based on key
+            if key in ["server", "tools", "resources", "prompts", "args"]:
+                kind = CompletionItemKind.Module
+            elif key in ["name", "desc", "version", "env", "cmd", "help-cmd", "args", "uri", "mime_type", "file", "text", "template", "help", "type", "default", "choices", "pattern", "ref"]:
+                kind = CompletionItemKind.Property
+            elif key in ["string", "number", "boolean", "array"]:
+                kind = CompletionItemKind.EnumMember
+            else:
+                kind = CompletionItemKind.Keyword
+            
+            completions.append(CompletionItem(
+                label=key,
+                kind=kind,
+                detail=detail
+            ))
+        
+        # Add Jinja2 template completions
+        jinja2_completions = [
+            ("{{", "Variable interpolation"),
+            ("{%", "Control structure"),
+            ("{#", "Comment"),
+            ("if", "If statement"),
+            ("else", "Else clause"),
+            ("elif", "Else if clause"),
+            ("endif", "End if"),
+            ("for", "For loop"),
+            ("endfor", "End for"),
+            ("set", "Variable assignment"),
+            ("now", "Current timestamp"),
+        ]
+        
+        for key, detail in jinja2_completions:
+            completions.append(CompletionItem(
+                label=key,
+                kind=CompletionItemKind.Keyword,
+                detail=f"Jinja2: {detail}"
+            ))
+        
+        return CompletionList(is_incomplete=False, items=completions)
+        
+    except Exception as e:
+        logger.error(f"Error in completion: {e}")
+        return CompletionList(is_incomplete=False, items=[])
+
+
+def create_server() -> LanguageServer:
+    """Create and return the language server instance."""
+    return server
 
 
 if __name__ == "__main__":
     # Run the server
-    server = create_server()
     server.start_io()
