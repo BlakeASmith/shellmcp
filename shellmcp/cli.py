@@ -3,8 +3,11 @@
 import fire
 import sys
 from pathlib import Path
+from typing import Dict, Any, Optional, List
 from .parser import YMLParser
 from .generator import FastMCPGenerator
+from .models import YMLConfig, ServerConfig, ToolConfig, ResourceConfig, PromptConfig, ToolArgument, ArgumentDefinition
+from .utils import get_input, get_choice, get_yes_no, save_config, load_or_create_config
 
 
 def validate(config_file: str, verbose: bool = False) -> int:
@@ -144,9 +147,348 @@ def generate(config_file: str, output_dir: str = None, verbose: bool = False) ->
         return 1
 
 
+def new(name: str = None, desc: str = None, version: str = None, output_file: str = None) -> int:
+    """
+    Create a new shellmcp server configuration.
+    
+    Args:
+        name: Server name
+        desc: Server description  
+        version: Server version (default: 1.0.0)
+        output_file: Output YAML file path (default: {name}.yml)
+    
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    try:
+        # Get server name
+        if not name:
+            name = get_input("Server name", required=True)
+        
+        # Get server description
+        if not desc:
+            desc = get_input("Server description", required=True)
+        
+        # Get version
+        if not version:
+            version = get_input("Server version", default="1.0.0")
+        
+        # Determine output file
+        if not output_file:
+            output_file = f"{name.replace(' ', '_').lower()}.yml"
+        
+        # Check if file already exists
+        if Path(output_file).exists():
+            overwrite = get_yes_no(f"File '{output_file}' already exists. Overwrite?", default=False)
+            if not overwrite:
+                print("❌ Operation cancelled")
+                return 1
+        
+        # Create server configuration
+        server_config = ServerConfig(
+            name=name,
+            desc=desc,
+            version=version
+        )
+        
+        config = YMLConfig(server=server_config)
+        
+        # Save configuration
+        save_config(config, output_file)
+        
+        print(f"✅ Created new server configuration: {output_file}")
+        print(f"📋 Server: {name} v{version}")
+        print(f"   Description: {desc}")
+        print(f"\n🚀 Next steps:")
+        print(f"   shellmcp add-tool {output_file}    # Add a tool")
+        print(f"   shellmcp validate {output_file}    # Validate configuration")
+        print(f"   shellmcp generate {output_file}    # Generate server")
+        
+        return 0
+        
+    except Exception as e:
+        print(f"❌ Error creating server: {e}", file=sys.stderr)
+        return 1
+
+
+def add_tool(config_file: str, name: str = None, cmd: str = None, desc: str = None, help_cmd: str = None) -> int:
+    """
+    Add a new tool to an existing server configuration.
+    
+    Args:
+        config_file: Path to the YAML configuration file
+        name: Tool name
+        cmd: Shell command (supports Jinja2 templates)
+        desc: Tool description
+        help_cmd: Command to get help text (optional)
+    
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    try:
+        # Load existing configuration
+        config = load_or_create_config(config_file)
+        
+        # Get tool name
+        if not name:
+            name = get_input("Tool name", required=True)
+        
+        # Check if tool already exists
+        if config.tools and name in config.tools:
+            overwrite = get_yes_no(f"Tool '{name}' already exists. Overwrite?", default=False)
+            if not overwrite:
+                print("❌ Operation cancelled")
+                return 1
+        
+        # Get tool command
+        if not cmd:
+            cmd = get_input("Shell command (supports Jinja2 templates like {{arg_name}})", required=True)
+        
+        # Get tool description
+        if not desc:
+            desc = get_input("Tool description", required=True)
+        
+        # Get help command (optional)
+        if not help_cmd:
+            help_cmd = get_input("Help command (optional, press Enter to skip)", required=False)
+        
+        # Create tool configuration
+        tool_config = ToolConfig(
+            cmd=cmd,
+            desc=desc,
+            help_cmd=help_cmd if help_cmd else None
+        )
+        
+        # Add tool to configuration
+        if not config.tools:
+            config.tools = {}
+        config.tools[name] = tool_config
+        
+        # Save configuration
+        save_config(config, config_file)
+        
+        print(f"✅ Added tool '{name}' to {config_file}")
+        print(f"📋 Tool: {name}")
+        print(f"   Description: {desc}")
+        print(f"   Command: {cmd}")
+        if help_cmd:
+            print(f"   Help command: {help_cmd}")
+        
+        return 0
+        
+    except Exception as e:
+        print(f"❌ Error adding tool: {e}", file=sys.stderr)
+        return 1
+
+
+def add_resource(config_file: str, name: str = None, uri: str = None, resource_name: str = None, 
+                description: str = None, content_type: str = None, content_source: str = None) -> int:
+    """
+    Add a new resource to an existing server configuration.
+    
+    Args:
+        config_file: Path to the YAML configuration file
+        name: Resource key name
+        uri: Resource URI
+        resource_name: Display name for the resource
+        description: Resource description
+        content_type: MIME type (optional)
+        content_source: Content source type (cmd/file/text)
+    
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    try:
+        # Load existing configuration
+        config = load_or_create_config(config_file)
+        
+        # Get resource name
+        if not name:
+            name = get_input("Resource name (key)", required=True)
+        
+        # Check if resource already exists
+        if config.resources and name in config.resources:
+            overwrite = get_yes_no(f"Resource '{name}' already exists. Overwrite?", default=False)
+            if not overwrite:
+                print("❌ Operation cancelled")
+                return 1
+        
+        # Get URI
+        if not uri:
+            uri = get_input("Resource URI", required=True)
+        
+        # Get resource display name
+        if not resource_name:
+            resource_name = get_input("Resource display name", default=name)
+        
+        # Get description
+        if not description:
+            description = get_input("Resource description", required=False)
+        
+        # Get MIME type
+        if not content_type:
+            content_type = get_input("MIME type (optional, e.g., text/plain, application/json)", required=False)
+        
+        # Get content source type
+        if not content_source:
+            content_source = get_choice(
+                "How will the resource content be provided?",
+                ["cmd", "file", "text"],
+                default="cmd"
+            )
+        
+        # Get content based on source type
+        if content_source == "cmd":
+            content = get_input("Shell command to generate content (supports Jinja2 templates)", required=True)
+            resource_config = ResourceConfig(
+                uri=uri,
+                name=resource_name,
+                description=description,
+                mime_type=content_type,
+                cmd=content
+            )
+        elif content_source == "file":
+            content = get_input("File path to read content from", required=True)
+            resource_config = ResourceConfig(
+                uri=uri,
+                name=resource_name,
+                description=description,
+                mime_type=content_type,
+                file=content
+            )
+        else:  # text
+            content = get_input("Direct text content", required=True)
+            resource_config = ResourceConfig(
+                uri=uri,
+                name=resource_name,
+                description=description,
+                mime_type=content_type,
+                text=content
+            )
+        
+        # Add resource to configuration
+        if not config.resources:
+            config.resources = {}
+        config.resources[name] = resource_config
+        
+        # Save configuration
+        save_config(config, config_file)
+        
+        print(f"✅ Added resource '{name}' to {config_file}")
+        print(f"📋 Resource: {name}")
+        print(f"   URI: {uri}")
+        print(f"   Display name: {resource_name}")
+        if description:
+            print(f"   Description: {description}")
+        if content_type:
+            print(f"   MIME type: {content_type}")
+        print(f"   Content source: {content_source}")
+        
+        return 0
+        
+    except Exception as e:
+        print(f"❌ Error adding resource: {e}", file=sys.stderr)
+        return 1
+
+
+def add_prompt(config_file: str, name: str = None, prompt_name: str = None, description: str = None, 
+              content_source: str = None) -> int:
+    """
+    Add a new prompt to an existing server configuration.
+    
+    Args:
+        config_file: Path to the YAML configuration file
+        name: Prompt key name
+        prompt_name: Display name for the prompt
+        description: Prompt description
+        content_source: Content source type (cmd/file/template)
+    
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    try:
+        # Load existing configuration
+        config = load_or_create_config(config_file)
+        
+        # Get prompt name
+        if not name:
+            name = get_input("Prompt name (key)", required=True)
+        
+        # Check if prompt already exists
+        if config.prompts and name in config.prompts:
+            overwrite = get_yes_no(f"Prompt '{name}' already exists. Overwrite?", default=False)
+            if not overwrite:
+                print("❌ Operation cancelled")
+                return 1
+        
+        # Get prompt display name
+        if not prompt_name:
+            prompt_name = get_input("Prompt display name", default=name)
+        
+        # Get description
+        if not description:
+            description = get_input("Prompt description", required=False)
+        
+        # Get content source type
+        if not content_source:
+            content_source = get_choice(
+                "How will the prompt content be provided?",
+                ["cmd", "file", "template"],
+                default="template"
+            )
+        
+        # Get content based on source type
+        if content_source == "cmd":
+            content = get_input("Shell command to generate prompt content (supports Jinja2 templates)", required=True)
+            prompt_config = PromptConfig(
+                name=prompt_name,
+                description=description,
+                cmd=content
+            )
+        elif content_source == "file":
+            content = get_input("File path to read prompt content from", required=True)
+            prompt_config = PromptConfig(
+                name=prompt_name,
+                description=description,
+                file=content
+            )
+        else:  # template
+            content = get_input("Jinja2 template content for the prompt", required=True)
+            prompt_config = PromptConfig(
+                name=prompt_name,
+                description=description,
+                template=content
+            )
+        
+        # Add prompt to configuration
+        if not config.prompts:
+            config.prompts = {}
+        config.prompts[name] = prompt_config
+        
+        # Save configuration
+        save_config(config, config_file)
+        
+        print(f"✅ Added prompt '{name}' to {config_file}")
+        print(f"📋 Prompt: {name}")
+        print(f"   Display name: {prompt_name}")
+        if description:
+            print(f"   Description: {description}")
+        print(f"   Content source: {content_source}")
+        
+        return 0
+        
+    except Exception as e:
+        print(f"❌ Error adding prompt: {e}", file=sys.stderr)
+        return 1
+
+
 def main():
     """Main CLI entry point using Fire."""
     fire.Fire({
         'validate': validate,
-        'generate': generate
+        'generate': generate,
+        'new': new,
+        'add-tool': add_tool,
+        'add-resource': add_resource,
+        'add-prompt': add_prompt
     })
