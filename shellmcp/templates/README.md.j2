@@ -1,0 +1,52 @@
+# {{ config.server.name }}
+
+{{ config.server.desc }}
+
+## Installation
+
+1. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+2. Run the server:
+```bash
+python {{ config.server.name.replace('-', '_') }}_server.py
+```
+
+## Tools
+
+{% for tool_name, tool in config.tools.items() %}
+{% set func_name = tool_name.lower().replace('-', '_') %}
+{% set resolved_args = config.get_resolved_arguments(tool_name) %}
+
+### {{ tool_name }}
+
+{{ tool.desc }}
+
+**Function**: `{{ func_name }}`
+
+**Arguments**:
+{% for arg in resolved_args %}
+- `{{ arg.name }}` ({{ arg.type }}): {{ arg.help }}{% if arg.default is not none %} [default: {{ arg.default }}]{% endif %}{% if arg.choices %} [choices: {{ arg.choices }}]{% endif %}
+{% endfor %}
+
+**Command**: `{{ tool.cmd }}`
+
+{% endfor %}
+
+## Configuration
+
+This server was generated from a YAML configuration file. The server exposes shell commands as MCP tools with the following features:
+
+- Jinja2 template support for dynamic command generation
+- Argument validation with patterns and choices
+- Environment variable support
+- Error handling and timeout protection
+
+## Server Information
+
+- **Name**: {{ config.server.name }}
+- **Version**: {{ config.server.version }}
+- **Description**: {{ config.server.desc }}
+- **Tools**: {{ config.tools|length if config.tools else 0 }}

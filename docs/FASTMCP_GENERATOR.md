@@ -12,11 +12,13 @@ The generator takes a YAML configuration file and produces:
 
 ## Features
 
+- **Template-Based Generation**: Uses Jinja2 templates for clean, maintainable code generation
 - **Jinja2 Template Support**: Commands can use Jinja2 templates for dynamic content
 - **Argument Validation**: Automatic validation with patterns and choices
 - **Environment Variables**: Support for server and tool-specific environment variables
 - **Error Handling**: Built-in timeout protection and error handling
 - **Type Safety**: Proper Python type annotations for all arguments
+- **Custom Filters**: Built-in Jinja2 filters for Python type conversion and formatting
 
 ## Usage
 
@@ -208,6 +210,31 @@ All tools return a consistent format:
     "returncode": int     # Process return code
 }
 ```
+
+## Template System
+
+The generator uses a sophisticated Jinja2 template system for code generation:
+
+### Template Files
+
+- **`server.py.j2`**: Main server template with all tool functions
+- **`requirements.txt.j2`**: Python dependencies template
+- **`README.md.j2`**: Documentation template
+
+### Custom Jinja2 Filters
+
+The generator includes custom filters for better template functionality:
+
+- **`python_type`**: Converts YAML types to Python type annotations
+- **`python_value`**: Converts values to Python representations based on type
+- **`escape_double_quotes`**: Escapes quotes for use in triple-quoted strings
+
+### Template Features
+
+- **Clean Code Generation**: Templates produce properly formatted, readable Python code
+- **Dynamic Content**: Full access to configuration data through template variables
+- **Maintainable**: Easy to modify templates without changing generator logic
+- **Extensible**: Add new templates or modify existing ones as needed
 
 ## Example Generated Server
 

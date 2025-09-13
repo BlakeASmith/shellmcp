@@ -69,7 +69,6 @@ mcp = FastMCP(name="filesystem-mcp")
 SERVER_NAME = "filesystem-mcp"
 SERVER_DESC = "MCP Server for filesystem operations"
 SERVER_VERSION = "1.0.0"
-# Set up server environment variables
 os.environ["NODE_ENV"] = "production"
 os.environ["DEBUG"] = "false"
 
@@ -80,7 +79,7 @@ def listfiles(path: str) -> Dict[str, Any]:
     List files in a directory with detailed information
     """
     try:
-# Validate path pattern
+        # Validate path pattern
         import re
         if not re.match(r"^[^\0]+$", str(path)):
             raise ValueError(f"Invalid path: must match pattern ^[^\0]+$")
@@ -101,13 +100,14 @@ def listfiles(path: str) -> Dict[str, Any]:
             "returncode": -1
         }
 
+
 @mcp.tool()
 def readfile(file: str) -> Dict[str, Any]:
     """
     Read and display the contents of a file
     """
     try:
-# Validate file pattern
+        # Validate file pattern
         import re
         if not re.match(r"^[^\0]+$", str(file)):
             raise ValueError(f"Invalid file: must match pattern ^[^\0]+$")
@@ -128,13 +128,14 @@ def readfile(file: str) -> Dict[str, Any]:
             "returncode": -1
         }
 
+
 @mcp.tool()
 def createdirectory(path: str) -> Dict[str, Any]:
     """
     Create a directory (and parent directories if needed)
     """
     try:
-# Validate path pattern
+        # Validate path pattern
         import re
         if not re.match(r"^[^\0]+$", str(path)):
             raise ValueError(f"Invalid path: must match pattern ^[^\0]+$")
@@ -155,13 +156,13 @@ def createdirectory(path: str) -> Dict[str, Any]:
             "returncode": -1
         }
 
+
 @mcp.tool()
 def backupdatabase(user: str, password: str, database: str, host: str = "localhost", compress: bool = False, timestamp: str = "{{ now().strftime('%Y%m%d_%H%M%S') }}") -> Dict[str, Any]:
     """
     Database backup with optional compression
     """
     try:
-
         
         # Render command template
         cmd = render_template("""{% set backup_file = \"backup_\" + timestamp + \".sql\" %}
@@ -185,13 +186,14 @@ echo \"Backup completed: {{ backup_file }}\"
             "returncode": -1
         }
 
+
 @mcp.tool()
 def dockercontainer(action: str, container: str) -> Dict[str, Any]:
     """
     Manage Docker containers
     """
     try:
-# Validate action choices
+        # Validate action choices
         if action not in ['start', 'stop', 'restart', 'logs', 'inspect']:
             raise ValueError(f"Invalid action: must be one of ['start', 'stop', 'restart', 'logs', 'inspect']")
         
@@ -220,13 +222,14 @@ docker {{ action }} {{ container }}
             "returncode": -1
         }
 
+
 @mcp.tool()
 def conditionaldeploy(service: str, image: str, env: str = "dev") -> Dict[str, Any]:
     """
     Deploy service with environment-specific configuration
     """
     try:
-# Validate env choices
+        # Validate env choices
         if env not in ['dev', 'staging', 'prod']:
             raise ValueError(f"Invalid env: must be one of ['dev', 'staging', 'prod']")
         
@@ -242,9 +245,7 @@ docker run -d --name {{ service }}_dev {{ image }}
         
         # Execute command
         env_vars = {}
-        # Set up tool-specific environment variables
         env_vars["DOCKER_HOST"] = "unix:///var/run/docker.sock"
-
         result = execute_command(cmd, env_vars)
         
         return result
@@ -255,6 +256,7 @@ docker run -d --name {{ service }}_dev {{ image }}
             "stderr": f"Error in ConditionalDeploy: {str(e)}",
             "returncode": -1
         }
+
 
 if __name__ == "__main__":
     print(f"Starting {SERVER_NAME} v{SERVER_VERSION}")

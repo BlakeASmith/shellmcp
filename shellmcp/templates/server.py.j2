@@ -1,0 +1,140 @@
+"""Generated FastMCP server from YAML configuration."""
+
+import os
+import subprocess
+import tempfile
+import shlex
+from datetime import datetime
+from typing import Any, Dict, Optional
+from fastmcp import FastMCP
+from jinja2 import Template, Environment
+
+def execute_command(cmd: str, env_vars: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
+    """Execute a shell command and return the result."""
+    try:
+        # Prepare environment
+        env = os.environ.copy()
+        if env_vars:
+            env.update(env_vars)
+        
+        # Execute command
+        result = subprocess.run(
+            cmd,
+            shell=True,
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=300  # 5 minute timeout
+        )
+        
+        return {
+            "success": result.returncode == 0,
+            "stdout": result.stdout,
+            "stderr": result.stderr,
+            "returncode": result.returncode
+        }
+    except subprocess.TimeoutExpired:
+        return {
+            "success": False,
+            "stdout": "",
+            "stderr": "Command timed out after 5 minutes",
+            "returncode": -1
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "stdout": "",
+            "stderr": str(e),
+            "returncode": -1
+        }
+
+def render_template(template_str: str, **kwargs) -> str:
+    """Render Jinja2 template with provided variables."""
+    try:
+        # Add built-in functions
+        context = {
+            'now': datetime.now,
+            **kwargs
+        }
+        
+        template = Template(template_str)
+        return template.render(**context)
+    except Exception as e:
+        raise ValueError(f"Template rendering error: {e}")
+
+# Initialize FastMCP server
+mcp = FastMCP(name="{{ config.server.name }}")
+
+# Server configuration
+SERVER_NAME = "{{ config.server.name }}"
+SERVER_DESC = "{{ config.server.desc }}"
+SERVER_VERSION = "{{ config.server.version }}"
+{% if config.server.env %}
+{% for key, value in config.server.env.items() %}
+os.environ["{{ key }}"] = "{{ value }}"
+{% endfor %}
+{% endif %}
+
+{% for tool_name, tool in config.tools.items() %}
+{% set func_name = tool_name.lower().replace('-', '_') %}
+{% set resolved_args = config.get_resolved_arguments(tool_name) %}
+{% set params_with_defaults = [] %}
+{% set params_without_defaults = [] %}
+{% for arg in resolved_args %}
+{% if arg.default is not none %}
+{% set param = arg.name + ": " + (arg.type|python_type) + " = " + (arg.default|python_value(arg.type)) %}
+{% set _ = params_with_defaults.append(param) %}
+{% else %}
+{% set param = arg.name + ": " + (arg.type|python_type) %}
+{% set _ = params_without_defaults.append(param) %}
+{% endif %}
+{% endfor %}
+{% set param_str = (params_without_defaults + params_with_defaults)|join(", ") %}
+
+@mcp.tool()
+def {{ func_name }}({{ param_str }}) -> Dict[str, Any]:
+    """
+    {{ tool.desc }}
+    """
+    try:
+{% for arg in resolved_args %}
+{% if arg.pattern %}
+        # Validate {{ arg.name }} pattern
+        import re
+        if not re.match(r"{{ arg.pattern }}", str({{ arg.name }})):
+            raise ValueError(f"Invalid {{ arg.name }}: must match pattern {{ arg.pattern }}")
+{% endif %}
+{% if arg.choices %}
+        # Validate {{ arg.name }} choices
+        if {{ arg.name }} not in {{ arg.choices }}:
+            raise ValueError(f"Invalid {{ arg.name }}: must be one of {{ arg.choices }}")
+{% endif %}
+{% endfor %}
+        
+        # Render command template
+        cmd = render_template("""{{ tool.cmd|escape_double_quotes }}""", {{ resolved_args|map(attribute='name')|join(', ') }})
+        
+        # Execute command
+        env_vars = {}
+{% if tool.env %}
+{% for key, value in tool.env.items() %}
+        env_vars["{{ key }}"] = "{{ value }}"
+{% endfor %}
+{% endif %}
+        result = execute_command(cmd, env_vars)
+        
+        return result
+    except Exception as e:
+        return {
+            "success": False,
+            "stdout": "",
+            "stderr": f"Error in {{ tool_name }}: {str(e)}",
+            "returncode": -1
+        }
+
+{% endfor %}
+
+if __name__ == "__main__":
+    print(f"Starting {SERVER_NAME} v{SERVER_VERSION}")
+    print(f"Description: {SERVER_DESC}")
+    mcp.run()

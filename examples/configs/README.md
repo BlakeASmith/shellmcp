@@ -16,6 +16,7 @@ python filesystem_mcp_server.py
 
 ## Tools
 
+
 ### ListFiles
 
 List files in a directory with detailed information
@@ -24,8 +25,8 @@ List files in a directory with detailed information
 
 **Arguments**:
 - `path` (string): Path to a directory
-
 **Command**: `ls -la {{ path }}`
+
 
 ### ReadFile
 
@@ -35,8 +36,8 @@ Read and display the contents of a file
 
 **Arguments**:
 - `file` (string): Path to a file
-
 **Command**: `cat {{ file }}`
+
 
 ### CreateDirectory
 
@@ -46,8 +47,8 @@ Create a directory (and parent directories if needed)
 
 **Arguments**:
 - `path` (string): Path to a directory
-
 **Command**: `mkdir -p {{ path }}`
+
 
 ### BackupDatabase
 
@@ -56,13 +57,7 @@ Database backup with optional compression
 **Function**: `backupdatabase`
 
 **Arguments**:
-- `host` (string): Database host [default: localhost]
-- `user` (string): Database user
-- `password` (string): Database password
-- `database` (string): Database name
-- `compress` (boolean): Boolean flag [default: False]
-- `timestamp` (string): Timestamp for backup file [default: {{ now().strftime('%Y%m%d_%H%M%S') }}]
-
+- `host` (string): Database host [default: localhost]- `user` (string): Database user- `password` (string): Database password- `database` (string): Database name- `compress` (boolean): Boolean flag [default: False]- `timestamp` (string): Timestamp for backup file [default: {{ now().strftime('%Y%m%d_%H%M%S') }}]
 **Command**: `{% set backup_file = "backup_" + timestamp + ".sql" %}
 mysqldump -h {{ host }} -u {{ user }} -p{{ password }} {{ database }} > {{ backup_file }}
 {% if compress %}
@@ -71,6 +66,7 @@ gzip {{ backup_file }}
 echo "Backup completed: {{ backup_file }}"
 `
 
+
 ### DockerContainer
 
 Manage Docker containers
@@ -78,9 +74,7 @@ Manage Docker containers
 **Function**: `dockercontainer`
 
 **Arguments**:
-- `action` (string): Action to perform [choices: ['start', 'stop', 'restart', 'logs', 'inspect']]
-- `container` (string): Container name or ID
-
+- `action` (string): Action to perform [choices: ['start', 'stop', 'restart', 'logs', 'inspect']]- `container` (string): Container name or ID
 **Command**: `{% if action == 'start' %}
 docker start {{ container }}
 {% elif action == 'stop' %}
@@ -92,6 +86,7 @@ docker {{ action }} {{ container }}
 {% endif %}
 `
 
+
 ### ConditionalDeploy
 
 Deploy service with environment-specific configuration
@@ -99,10 +94,7 @@ Deploy service with environment-specific configuration
 **Function**: `conditionaldeploy`
 
 **Arguments**:
-- `env` (string): Deployment environment [default: dev] [choices: ['dev', 'staging', 'prod']]
-- `service` (string): Service name
-- `image` (string): Docker image to deploy
-
+- `env` (string): Deployment environment [default: dev] [choices: ['dev', 'staging', 'prod']]- `service` (string): Service name- `image` (string): Docker image to deploy
 **Command**: `{% if env == 'prod' %}
 docker run --restart=always -d --name {{ service }} {{ image }}
 {% elif env == 'staging' %}
