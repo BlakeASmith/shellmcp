@@ -107,6 +107,145 @@ tools:
       - name: NAME
         help: Name to greet
         default: "World"
+
+  LocalScript:
+    cmd: ./scripts/deploy.sh $ENV $VERSION
+    desc: Run local deployment script
+    args:
+      - name: ENV
+        help: Environment to deploy to
+        choices: ["dev", "staging", "prod"]
+      - name: VERSION
+        help: Version to deploy
+        default: "latest"
+
+  PythonScript:
+    cmd: python scripts/analyze.py --input "$INPUT" --output "$OUTPUT"
+    desc: Run Python analysis script
+    args:
+      - name: INPUT
+        help: Input file path
+      - name: OUTPUT
+        help: Output file path
+        default: "results.json"
+
+  MakeCommand:
+    cmd: make $TARGET
+    desc: Run make target
+    args:
+      - name: TARGET
+        help: Make target to run
+        choices: ["build", "test", "clean", "install"]
+```
+
+### Local Script Examples
+
+#### Shell Scripts
+```yml
+tools:
+  BackupDatabase:
+    cmd: ./scripts/backup-db.sh $DATABASE $BACKUP_DIR
+    desc: Backup database using local script
+    args:
+      - name: DATABASE
+        help: Database name to backup
+      - name: BACKUP_DIR
+        help: Directory to store backup
+        default: "./backups"
+
+  DeployApp:
+    cmd: ./deploy.sh $ENV
+    desc: Deploy application
+    args:
+      - name: ENV
+        help: Environment to deploy to
+        choices: ["dev", "staging", "prod"]
+```
+
+#### Python Scripts
+```yml
+tools:
+  DataProcessor:
+    cmd: python scripts/process_data.py --input "$INPUT" --format "$FORMAT"
+    desc: Process data using Python script
+    args:
+      - name: INPUT
+        help: Input data file
+      - name: FORMAT
+        help: Output format
+        choices: ["json", "csv", "xml"]
+        default: "json"
+
+  ReportGenerator:
+    cmd: python -m reports.generate --template "$TEMPLATE" --output "$OUTPUT"
+    desc: Generate reports
+    args:
+      - name: TEMPLATE
+        help: Report template name
+      - name: OUTPUT
+        help: Output file path
+```
+
+#### Node.js Scripts
+```yml
+tools:
+  BuildAssets:
+    cmd: node scripts/build.js --env $ENV --minify $MINIFY
+    desc: Build frontend assets
+    args:
+      - name: ENV
+        help: Build environment
+        choices: ["development", "production"]
+      - name: MINIFY
+        help: Minify output
+        type: boolean
+        default: false
+
+  TestRunner:
+    cmd: npm run test -- --grep "$PATTERN"
+    desc: Run tests with pattern
+    args:
+      - name: PATTERN
+        help: Test pattern to match
+        default: ".*"
+```
+
+#### Make/CMake Commands
+```yml
+tools:
+  BuildProject:
+    cmd: make $TARGET
+    desc: Build project using Make
+    args:
+      - name: TARGET
+        help: Make target
+        choices: ["all", "debug", "release", "clean"]
+        default: "all"
+
+  CMakeBuild:
+    cmd: cmake --build build --config $CONFIG
+    desc: Build using CMake
+    args:
+      - name: CONFIG
+        help: Build configuration
+        choices: ["Debug", "Release", "RelWithDebInfo"]
+        default: "Release"
+```
+
+#### Docker Compose
+```yml
+tools:
+  StartServices:
+    cmd: docker-compose up -d $SERVICES
+    desc: Start Docker services
+    args:
+      - name: SERVICES
+        help: Services to start (space-separated)
+        default: ""
+
+  StopServices:
+    cmd: docker-compose down
+    desc: Stop all Docker services
 ```
 
 ### Variable Substitution
