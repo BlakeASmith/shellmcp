@@ -86,16 +86,20 @@ class ResourceConfig(BaseModel):
     mime_type: Optional[str] = Field(None, description="MIME type of the resource")
     cmd: Optional[str] = Field(None, description="Shell command to generate resource content (supports Jinja2 templates)")
     file: Optional[str] = Field(None, description="File path to read resource content from")
+    text: Optional[str] = Field(None, description="Direct text content for the resource")
     args: Optional[List[ToolArgument]] = Field(None, description="Argument definitions for resource generation")
     env: Optional[Dict[str, str]] = Field(None, description="Resource-specific environment variables")
     
     @model_validator(mode='after')
-    def validate_cmd_or_file(self):
-        """Validate that either cmd or file is provided, but not both."""
-        if not self.cmd and not self.file:
-            raise ValueError("Either 'cmd' or 'file' must be provided for resource")
-        if self.cmd and self.file:
-            raise ValueError("Cannot specify both 'cmd' and 'file' for resource")
+    def validate_content_source(self):
+        """Validate that exactly one content source is provided."""
+        sources = [self.cmd, self.file, self.text]
+        provided_sources = [s for s in sources if s is not None]
+        
+        if len(provided_sources) == 0:
+            raise ValueError("One of 'cmd', 'file', or 'text' must be provided for resource")
+        if len(provided_sources) > 1:
+            raise ValueError("Only one of 'cmd', 'file', or 'text' can be provided for resource")
         return self
 
 
@@ -106,16 +110,20 @@ class PromptConfig(BaseModel):
     description: Optional[str] = Field(None, description="Prompt description")
     cmd: Optional[str] = Field(None, description="Shell command to generate prompt content (supports Jinja2 templates)")
     file: Optional[str] = Field(None, description="File path to read prompt content from")
+    template: Optional[str] = Field(None, description="Direct Jinja2 template content for the prompt")
     args: Optional[List[ToolArgument]] = Field(None, description="Argument definitions for prompt generation")
     env: Optional[Dict[str, str]] = Field(None, description="Prompt-specific environment variables")
     
     @model_validator(mode='after')
-    def validate_cmd_or_file(self):
-        """Validate that either cmd or file is provided, but not both."""
-        if not self.cmd and not self.file:
-            raise ValueError("Either 'cmd' or 'file' must be provided for prompt")
-        if self.cmd and self.file:
-            raise ValueError("Cannot specify both 'cmd' and 'file' for prompt")
+    def validate_content_source(self):
+        """Validate that exactly one content source is provided."""
+        sources = [self.cmd, self.file, self.template]
+        provided_sources = [s for s in sources if s is not None]
+        
+        if len(provided_sources) == 0:
+            raise ValueError("One of 'cmd', 'file', or 'template' must be provided for prompt")
+        if len(provided_sources) > 1:
+            raise ValueError("Only one of 'cmd', 'file', or 'template' can be provided for prompt")
         return self
 
 
@@ -328,34 +336,34 @@ class YMLConfig(BaseModel):
             return False
     
     def validate_resource_jinja2_template(self, resource_name: str) -> bool:
-        """Validate that the resource's command contains valid Jinja2 template syntax."""
+        """Validate that the resource's content contains valid Jinja2 template syntax."""
         if not self.resources or resource_name not in self.resources:
             return False
         
         resource = self.resources[resource_name]
-        if not resource.cmd:
-            return True  # File-based resources don't need template validation
+        template_str = resource.cmd or resource.file or resource.text
+        if not template_str:
+            return True  # No template to validate
         
         try:
             from jinja2 import Template
-            template_str = resource.cmd
             Template(template_str)
             return True
         except Exception:
             return False
     
     def validate_prompt_jinja2_template(self, prompt_name: str) -> bool:
-        """Validate that the prompt's command contains valid Jinja2 template syntax."""
+        """Validate that the prompt's content contains valid Jinja2 template syntax."""
         if not self.prompts or prompt_name not in self.prompts:
             return False
         
         prompt = self.prompts[prompt_name]
-        if not prompt.cmd:
-            return True  # File-based prompts don't need template validation
+        template_str = prompt.cmd or prompt.file or prompt.template
+        if not template_str:
+            return True  # No template to validate
         
         try:
             from jinja2 import Template
-            template_str = prompt.cmd
             Template(template_str)
             return True
         except Exception:
@@ -380,12 +388,12 @@ class YMLConfig(BaseModel):
             return []
     
     def get_resource_template_variables(self, resource_name: str) -> List[str]:
-        """Extract template variables from a resource's command or file."""
+        """Extract template variables from a resource's command, file, or text."""
         if not self.resources or resource_name not in self.resources:
             return []
         
         resource = self.resources[resource_name]
-        template_str = resource.cmd or resource.file
+        template_str = resource.cmd or resource.file or resource.text
         if not template_str:
             return []
         
@@ -402,12 +410,12 @@ class YMLConfig(BaseModel):
             return []
     
     def get_prompt_template_variables(self, prompt_name: str) -> List[str]:
-        """Extract template variables from a prompt's command or file."""
+        """Extract template variables from a prompt's command, file, or template."""
         if not self.prompts or prompt_name not in self.prompts:
             return []
         
         prompt = self.prompts[prompt_name]
-        template_str = prompt.cmd or prompt.file
+        template_str = prompt.cmd or prompt.file or prompt.template
         if not template_str:
             return []
         

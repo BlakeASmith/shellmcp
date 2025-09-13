@@ -172,7 +172,10 @@ def {{ func_name }}({{ param_str }}) -> Dict[str, Any]:
 {% endif %}
 {% endfor %}
         
-{% if resource.file %}
+{% if resource.text %}
+        # Use direct text content
+        content = render_template("""{{ resource.text|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
+{% elif resource.file %}
         # Read from file
         file_path = render_template("""{{ resource.file|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
         try:
@@ -248,7 +251,10 @@ def {{ func_name }}({{ param_str }}) -> Dict[str, Any]:
 {% endif %}
 {% endfor %}
         
-{% if prompt.file %}
+{% if prompt.template %}
+        # Use direct template content
+        content = render_template("""{{ prompt.template|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
+{% elif prompt.file %}
         # Read from file
         file_path = render_template("""{{ prompt.file|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
         try:
