@@ -8,7 +8,12 @@ MCP Server for filesystem operations
 
 1. **Create a virtual environment**:
 ```bash
-python -m venv venv
+python3 -m venv venv
+```
+
+**Note**: On Ubuntu/Debian systems, if you get an "ensurepip is not available" error, install the python3-venv package first:
+```bash
+sudo apt install python3-venv
 ```
 
 2. **Activate the virtual environment**:
@@ -81,6 +86,13 @@ The generated `mcp.json` file contains the configuration needed to integrate thi
 #### Helix Editor
 - Add to `~/.config/helix/config.toml`
 - Restart Helix
+
+#### Amazon Q CLI
+- Install Amazon Q CLI: `curl -sSL https://amazon-q-cli.s3.amazonaws.com/install.sh | bash`
+- Configure AWS credentials: `aws configure` or `aws sso login`
+- Add MCP configuration to `~/.config/amazon-q/cli-config.json` (Linux/macOS) or `%APPDATA%\Amazon\Q\cli-config.json` (Windows)
+- Start Amazon Q CLI: `amazon-q`
+- Use `@tools` command to access your MCP tools
 
 ### Configuration Parameters
 

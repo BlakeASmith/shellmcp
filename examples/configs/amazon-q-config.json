@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "filesystem-mcp": {
+      "command": "examples/configs/venv/bin/python",
+      "args": ["examples/configs/filesystem_mcp_server.py"],
+      "cwd": "examples/configs",
+      "env": {
+        "PYTHONPATH": "examples/configs",
+        "AWS_PROFILE": "default"
+      }
+    }
+  },
+  "amazonQ": {
+    "region": "us-east-1",
+    "enableMCPTools": true,
+    "toolPrefix": "@tools"
+  }
+}

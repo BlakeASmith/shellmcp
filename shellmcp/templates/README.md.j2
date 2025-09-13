@@ -87,6 +87,13 @@ The generated `mcp.json` file contains the configuration needed to integrate thi
 - Add to `~/.config/helix/config.toml`
 - Restart Helix
 
+#### Amazon Q CLI
+- Install Amazon Q CLI: `curl -sSL https://amazon-q-cli.s3.amazonaws.com/install.sh | bash`
+- Configure AWS credentials: `aws configure` or `aws sso login`
+- Add MCP configuration to `~/.config/amazon-q/cli-config.json` (Linux/macOS) or `%APPDATA%\Amazon\Q\cli-config.json` (Windows)
+- Start Amazon Q CLI: `amazon-q`
+- Use `@tools` command to access your MCP tools
+
 ### Configuration Parameters
 
 - **`command`**: Python interpreter command

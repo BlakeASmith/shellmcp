@@ -125,12 +125,21 @@ def generate(config_file: str, output_dir: str = None, verbose: bool = False) ->
             str(output_dir)
         )
         
+        # Generate Amazon Q CLI configuration
+        amazon_q_config_file = generator.generate_amazon_q_config(
+            config,
+            str(output_dir / "amazon-q-config.json"),
+            str(server_file),
+            str(output_dir)
+        )
+        
         print(f"✅ FastMCP server generated successfully!")
         print(f"📁 Output directory: {output_dir}")
         print(f"🐍 Server file: {server_file}")
         print(f"📦 Requirements: {requirements_file}")
         print(f"📖 Documentation: {readme_file}")
         print(f"⚙️  MCP Config: {mcp_config_file}")
+        print(f"🔧 Amazon Q Config: {amazon_q_config_file}")
         
         if verbose:
             print(f"\n🚀 To run the server:")
@@ -146,6 +155,13 @@ def generate(config_file: str, output_dir: str = None, verbose: bool = False) ->
             print(f"   Copy the contents of {Path(mcp_config_file).name}")
             print(f"   Add to your editor's MCP configuration file")
             print(f"   See README.md for detailed instructions")
+            
+            print(f"\n🔧 To configure Amazon Q CLI:")
+            print(f"   Copy the contents of {Path(amazon_q_config_file).name}")
+            print(f"   Install Amazon Q CLI: curl -sSL https://amazon-q-cli.s3.amazonaws.com/install.sh | bash")
+            print(f"   Configure AWS credentials: aws configure")
+            print(f"   Add configuration to ~/.config/amazon-q/cli-config.json")
+            print(f"   Start Amazon Q CLI: amazon-q")
         
         return 0
         
