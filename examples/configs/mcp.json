@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "filesystem-mcp": {
+      "command": "python",
+      "args": ["examples/configs/filesystem_mcp_server.py"],
+      "cwd": "examples/configs",
+      "env": {
+        "PYTHONPATH": "examples/configs"
+      }
+    }
+  }
+}

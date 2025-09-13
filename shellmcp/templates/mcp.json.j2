@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "{{ config.server.name }}": {
+      "command": "python",
+      "args": ["{{ server_script_path }}"],
+      "cwd": "{{ server_directory }}",
+      "env": {
+        "PYTHONPATH": "{{ server_directory }}"
+      }
+    }
+  }
+}

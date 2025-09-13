@@ -14,6 +14,53 @@ pip install -r requirements.txt
 python {{ config.server.name.replace('-', '_') }}_server.py
 ```
 
+## MCP Configuration
+
+The generated `mcp.json` file contains the configuration needed to integrate this server with MCP-compatible editors and clients.
+
+### Quick Setup
+
+1. **Copy the MCP configuration** from the generated `mcp.json` file
+2. **Add to your editor's MCP configuration** (see platform-specific instructions below)
+3. **Restart your editor**
+
+### Platform-Specific Instructions
+
+#### Claude Desktop
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`  
+- **Linux**: `~/.config/Claude/claude_desktop_config.json`
+
+#### Cursor Editor
+- Add to Cursor settings under MCP configuration
+- Restart Cursor after configuration
+
+#### Visual Studio Code
+- Install MCP extension
+- Add configuration to VS Code settings
+- Reload VS Code
+
+#### Neovim
+- Use MCP plugin with the provided configuration
+- Run `:PackerSync` to install
+
+#### Helix Editor
+- Add to `~/.config/helix/config.toml`
+- Restart Helix
+
+### Configuration Parameters
+
+- **`command`**: Python interpreter command
+- **`args`**: Server script path and arguments
+- **`cwd`**: Working directory for the server
+- **`env`**: Environment variables (PYTHONPATH, etc.)
+
+### Testing Your Configuration
+
+1. **Manual test**: Run the server directly to ensure it starts
+2. **Check tools**: Verify tools appear in your editor's MCP interface
+3. **Test commands**: Try using the generated tools through the editor
+
 ## Tools
 
 {% for tool_name, tool in config.tools.items() %}

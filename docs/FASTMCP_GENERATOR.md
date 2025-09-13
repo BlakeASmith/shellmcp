@@ -307,6 +307,178 @@ if __name__ == "__main__":
 3. **Connect with MCP Client**:
    The server runs on STDIO transport and can be connected to by any MCP-compatible client.
 
+## MCP Configuration for Editors
+
+To use your generated FastMCP server with various editors and MCP clients, you need to configure the `mcp.json` file. Here are the installation instructions for different platforms:
+
+### Claude Desktop (macOS)
+
+1. **Locate the configuration file**:
+   ```bash
+   ~/Library/Application Support/Claude/claude_desktop_config.json
+   ```
+
+2. **Add your server configuration**:
+   ```json
+   {
+     "mcpServers": {
+       "filesystem-mcp": {
+         "command": "python",
+         "args": ["/path/to/your/filesystem_mcp_server.py"],
+         "env": {
+           "NODE_ENV": "production"
+         }
+       }
+     }
+   }
+   ```
+
+3. **Restart Claude Desktop** for changes to take effect.
+
+### Claude Desktop (Windows)
+
+1. **Locate the configuration file**:
+   ```
+   %APPDATA%\Claude\claude_desktop_config.json
+   ```
+
+2. **Add your server configuration** (same JSON as above)
+
+3. **Restart Claude Desktop**
+
+### Claude Desktop (Linux)
+
+1. **Locate the configuration file**:
+   ```bash
+   ~/.config/Claude/claude_desktop_config.json
+   ```
+
+2. **Add your server configuration** (same JSON as above)
+
+3. **Restart Claude Desktop**
+
+### Cursor Editor
+
+1. **Open Cursor Settings**:
+   - Press `Cmd/Ctrl + ,` to open settings
+   - Search for "MCP" or navigate to Extensions
+
+2. **Add MCP Server**:
+   ```json
+   {
+     "mcp.servers": {
+       "filesystem-mcp": {
+         "command": "python",
+         "args": ["/path/to/your/filesystem_mcp_server.py"],
+         "cwd": "/path/to/your/server/directory"
+       }
+     }
+   }
+   ```
+
+3. **Restart Cursor**
+
+### Visual Studio Code with MCP Extension
+
+1. **Install MCP Extension**:
+   - Open VS Code
+   - Go to Extensions (`Ctrl+Shift+X`)
+   - Search for "MCP" and install the MCP extension
+
+2. **Configure in settings.json**:
+   ```json
+   {
+     "mcp.servers": {
+       "filesystem-mcp": {
+         "command": "python",
+         "args": ["/path/to/your/filesystem_mcp_server.py"],
+         "cwd": "/path/to/your/server/directory"
+       }
+     }
+   }
+   ```
+
+3. **Reload VS Code**
+
+### Neovim with MCP Plugin
+
+1. **Install MCP Plugin** (using packer.nvim):
+   ```lua
+   use {
+     'mcp/mcp.nvim',
+     config = function()
+       require('mcp').setup({
+         servers = {
+           filesystem_mcp = {
+             command = "python",
+             args = { "/path/to/your/filesystem_mcp_server.py" },
+             cwd = "/path/to/your/server/directory"
+           }
+         }
+       })
+     end
+   }
+   ```
+
+2. **Run `:PackerSync`** to install the plugin
+
+### Helix Editor
+
+1. **Add to helix configuration** (`~/.config/helix/config.toml`):
+   ```toml
+   [language-server.mcp]
+   command = "python"
+   args = ["/path/to/your/filesystem_mcp_server.py"]
+   config.root = "/path/to/your/server/directory"
+   ```
+
+2. **Restart Helix**
+
+### Generic MCP Client Configuration
+
+For any MCP-compatible client, use this standard configuration:
+
+```json
+{
+  "mcpServers": {
+    "your-server-name": {
+      "command": "python",
+      "args": ["/absolute/path/to/your_server.py"],
+      "cwd": "/path/to/server/directory",
+      "env": {
+        "PYTHONPATH": "/path/to/server/directory"
+      }
+    }
+  }
+}
+```
+
+### Configuration Parameters
+
+- **`command`**: The Python interpreter command
+- **`args`**: Array of arguments (first should be the server script path)
+- **`cwd`**: Working directory for the server process
+- **`env`**: Environment variables to pass to the server
+
+### Troubleshooting MCP Configuration
+
+1. **Check Paths**: Ensure all paths are absolute and correct
+2. **Python Path**: Make sure Python can find your server script
+3. **Dependencies**: Verify all required packages are installed
+4. **Permissions**: Check that the server script is executable
+5. **Logs**: Check editor logs for MCP connection errors
+
+### Testing Your Configuration
+
+1. **Manual Test**: Run the server directly to ensure it starts:
+   ```bash
+   python /path/to/your/filesystem_mcp_server.py
+   ```
+
+2. **Check Tools**: Verify that your tools are available in the editor's MCP interface
+
+3. **Test Commands**: Try using your generated tools through the editor's MCP integration
+
 ## Best Practices
 
 ### Security

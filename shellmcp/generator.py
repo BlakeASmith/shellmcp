@@ -85,3 +85,17 @@ class FastMCPGenerator:
             f.write(readme_content)
         
         return output_file
+    
+    def generate_mcp_config(self, config: YMLConfig, output_file: str, server_script_path: str, server_directory: str) -> str:
+        """Generate MCP configuration file for the FastMCP server."""
+        template = self.jinja_env.get_template('mcp.json.j2')
+        mcp_config = template.render(
+            config=config,
+            server_script_path=server_script_path,
+            server_directory=server_directory
+        )
+        
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write(mcp_config)
+        
+        return output_file
