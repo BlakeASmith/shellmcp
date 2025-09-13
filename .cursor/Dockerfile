@@ -21,9 +21,6 @@ USER cursor
 # Set the working directory to the user's home directory
 WORKDIR /home/cursor
 
-# Copy requirements files
-COPY requirements.txt ./
-
 # Install Python dependencies
 RUN pip3 install --user -r pytest
 
