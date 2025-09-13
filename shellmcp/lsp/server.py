@@ -1,49 +1,77 @@
-"""Minimal LSP server for shellmcp YAML schema validation."""
+"""LSP server focused on autocomplete for shellmcp YAML files."""
 
-import json
 import logging
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import List
 
-import yaml
-from jsonschema import Draft7Validator, ValidationError
 from pygls.lsp.methods import (
     COMPLETION,
-    DID_OPEN,
-    DID_SAVE,
     INITIALIZE,
-    TEXT_DOCUMENT_DID_OPEN,
-    TEXT_DOCUMENT_DID_SAVE,
 )
 from pygls.lsp.types import (
     CompletionItem,
     CompletionItemKind,
     CompletionList,
-    Diagnostic,
-    DiagnosticSeverity,
+    CompletionParams,
     InitializeParams,
-    Position,
-    Range,
-    TextDocumentItem,
 )
 from pygls.server import LanguageServer
-from pygls.workspace import Document
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Load the JSON schema
-SCHEMA_PATH = Path(__file__).parent / "schema.json"
-with open(SCHEMA_PATH, "r") as f:
-    SCHEMA = json.load(f)
-
-# Create validator
-VALIDATOR = Draft7Validator(SCHEMA)
+# ShellMCP completions
+COMPLETIONS = {
+    # Root level
+    "server": "Server configuration",
+    "tools": "Tool definitions", 
+    "resources": "Resource definitions",
+    "prompts": "Prompt definitions",
+    "args": "Reusable argument definitions",
+    
+    # Server properties
+    "name": "Server name",
+    "desc": "Server description",
+    "version": "Server version",
+    "env": "Environment variables",
+    
+    # Tool properties
+    "cmd": "Shell command (supports Jinja2 templates)",
+    "help-cmd": "Command to get help text",
+    "args": "Tool arguments",
+    
+    # Resource properties
+    "uri": "Resource URI",
+    "mime_type": "MIME type",
+    "file": "File path",
+    "text": "Direct text content",
+    
+    # Prompt properties
+    "template": "Jinja2 template content",
+    
+    # Argument properties
+    "help": "Help text",
+    "type": "Argument type",
+    "default": "Default value",
+    "choices": "Allowed values",
+    "pattern": "Regex pattern",
+    "ref": "Reference to reusable argument",
+    
+    # Types
+    "string": "Text value",
+    "number": "Numeric value", 
+    "boolean": "True/false value",
+    "array": "List of values",
+    
+    # YAML keywords
+    "true": "YAML true",
+    "false": "YAML false",
+    "null": "YAML null",
+}
 
 
 class ShellMCPLanguageServer(LanguageServer):
-    """Minimal language server for shellmcp YAML configuration files."""
+    """LSP server focused on autocomplete for shellmcp YAML files."""
     
     def __init__(self):
         super().__init__("shellmcp-lsp", "0.1.0")
@@ -52,132 +80,63 @@ class ShellMCPLanguageServer(LanguageServer):
     def _setup_handlers(self):
         """Set up LSP method handlers."""
         self.feature(INITIALIZE)(self._initialize)
-        self.feature(TEXT_DOCUMENT_DID_OPEN)(self._did_open)
-        self.feature(TEXT_DOCUMENT_DID_SAVE)(self._did_save)
         self.feature(COMPLETION)(self._completion)
     
     def _initialize(self, params: InitializeParams):
         """Initialize the language server."""
         return {
             "capabilities": {
-                "textDocumentSync": {
-                    "openClose": True,
-                    "change": 1,
-                    "save": True
-                },
                 "completionProvider": {
                     "resolveProvider": False,
-                    "triggerCharacters": [":", " "]
-                },
-                "diagnosticProvider": {
-                    "interFileDependencies": False,
-                    "workspaceDiagnostics": False
+                    "triggerCharacters": [":", " ", "-", "{", "%"]
                 }
             }
         }
     
-    def _did_open(self, params: TextDocumentItem):
-        """Handle document open event."""
-        self._validate_document(params.uri)
-    
-    def _did_save(self, params: TextDocumentItem):
-        """Handle document save event."""
-        self._validate_document(params.uri)
-    
-    def _validate_document(self, uri: str):
-        """Validate a YAML document against the schema."""
+    def _completion(self, params: CompletionParams) -> CompletionList:
+        """Provide autocomplete suggestions."""
         try:
-            doc = self.workspace.get_document(uri)
-            if not doc.source.strip():
-                return
+            completions = []
             
-            # Parse YAML
-            try:
-                yaml_data = yaml.safe_load(doc.source)
-            except yaml.YAMLError as e:
-                self._publish_diagnostics(uri, [self._create_yaml_error_diagnostic(str(e))])
-                return
+            # Add all available completions
+            for key, detail in COMPLETIONS.items():
+                # Determine completion kind based on key
+                if key in ["server", "tools", "resources", "prompts", "args"]:
+                    kind = CompletionItemKind.Module
+                elif key in ["name", "desc", "version", "env", "cmd", "help-cmd", "args", "uri", "mime_type", "file", "text", "template", "help", "type", "default", "choices", "pattern", "ref"]:
+                    kind = CompletionItemKind.Property
+                elif key in ["string", "number", "boolean", "array"]:
+                    kind = CompletionItemKind.EnumMember
+                else:
+                    kind = CompletionItemKind.Keyword
+                
+                completions.append(CompletionItem(
+                    label=key,
+                    kind=kind,
+                    detail=detail
+                ))
             
-            if yaml_data is None:
-                return
-            
-            # Validate against schema
-            errors = list(VALIDATOR.iter_errors(yaml_data))
-            diagnostics = []
-            
-            for error in errors:
-                diagnostic = self._create_schema_error_diagnostic(error, doc)
-                if diagnostic:
-                    diagnostics.append(diagnostic)
-            
-            self._publish_diagnostics(uri, diagnostics)
-            
-        except Exception as e:
-            logger.error(f"Error validating document {uri}: {e}")
-    
-    def _create_yaml_error_diagnostic(self, message: str) -> Diagnostic:
-        """Create a diagnostic for YAML parsing errors."""
-        return Diagnostic(
-            range=Range(
-                start=Position(line=0, character=0),
-                end=Position(line=0, character=0)
-            ),
-            message=f"YAML parsing error: {message}",
-            severity=DiagnosticSeverity.Error,
-            source="shellmcp-lsp"
-        )
-    
-    def _create_schema_error_diagnostic(self, error: ValidationError, doc: Document) -> Optional[Diagnostic]:
-        """Create a diagnostic for schema validation errors."""
-        try:
-            # Simple error reporting at line 0 for now
-            return Diagnostic(
-                range=Range(
-                    start=Position(line=0, character=0),
-                    end=Position(line=0, character=10)
-                ),
-                message=error.message,
-                severity=DiagnosticSeverity.Error,
-                source="shellmcp-lsp"
-            )
-        except Exception:
-            return None
-    
-    def _publish_diagnostics(self, uri: str, diagnostics: List[Diagnostic]):
-        """Publish diagnostics to the client."""
-        self.publish_diagnostics(uri, diagnostics)
-    
-    def _completion(self, params) -> CompletionList:
-        """Provide basic completion suggestions."""
-        try:
-            # Basic completions for shellmcp keys
-            completions = [
-                CompletionItem(
-                    label="server",
-                    kind=CompletionItemKind.Property,
-                    detail="Server configuration"
-                ),
-                CompletionItem(
-                    label="tools",
-                    kind=CompletionItemKind.Property,
-                    detail="Tool definitions"
-                ),
-                CompletionItem(
-                    label="resources",
-                    kind=CompletionItemKind.Property,
-                    detail="Resource definitions"
-                ),
-                CompletionItem(
-                    label="prompts",
-                    kind=CompletionItemKind.Property,
-                    detail="Prompt definitions"
-                ),
-                CompletionItem(
-                    label="args",
-                    kind=CompletionItemKind.Property,
-                    detail="Reusable argument definitions"
-                )
+            # Add Jinja2 template completions
+            jinja2_completions = [
+                ("{{", "Variable interpolation"),
+                ("{%", "Control structure"),
+                ("{#", "Comment"),
+                ("if", "If statement"),
+                ("else", "Else clause"),
+                ("elif", "Else if clause"),
+                ("endif", "End if"),
+                ("for", "For loop"),
+                ("endfor", "End for"),
+                ("set", "Variable assignment"),
+                ("now", "Current timestamp"),
             ]
+            
+            for key, detail in jinja2_completions:
+                completions.append(CompletionItem(
+                    label=key,
+                    kind=CompletionItemKind.Keyword,
+                    detail=f"Jinja2: {detail}"
+                ))
             
             return CompletionList(is_incomplete=False, items=completions)
             

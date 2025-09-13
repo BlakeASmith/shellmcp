@@ -1,12 +1,12 @@
 # ShellMCP LSP Server
 
-Minimal Language Server Protocol implementation for shellmcp YAML configuration files.
+LSP server providing autocomplete for shellmcp YAML configuration files.
 
 ## Features
 
-- **Schema Validation**: Basic validation against shellmcp YAML schema
-- **Auto-completion**: Simple completion for main YAML keys
-- **Error Reporting**: YAML parsing and schema validation errors
+- **Autocomplete**: Comprehensive autocomplete for shellmcp YAML keys and values
+- **Jinja2 Support**: Autocomplete for Jinja2 template syntax
+- **Type Completions**: Built-in type suggestions (string, number, boolean, array)
 
 ## Installation
 
@@ -34,13 +34,36 @@ Add to your VS Code settings:
 }
 ```
 
-## Supported Features
+## Autocomplete Features
 
-- Server configuration validation
-- Tool definitions
-- Resource definitions  
-- Prompt definitions
-- Reusable argument definitions
+### YAML Keys
+- `server` - Server configuration
+- `tools` - Tool definitions
+- `resources` - Resource definitions
+- `prompts` - Prompt definitions
+- `args` - Reusable argument definitions
+
+### Properties
+- `name`, `desc`, `version`, `env` - Server properties
+- `cmd`, `help-cmd`, `args` - Tool properties
+- `uri`, `mime_type`, `file`, `text` - Resource properties
+- `template` - Prompt properties
+- `help`, `type`, `default`, `choices`, `pattern`, `ref` - Argument properties
+
+### Types
+- `string` - Text value
+- `number` - Numeric value
+- `boolean` - True/false value
+- `array` - List of values
+
+### Jinja2 Templates
+- `{{` - Variable interpolation
+- `{%` - Control structure
+- `{#` - Comment
+- `if`, `else`, `elif`, `endif` - Conditional logic
+- `for`, `endfor` - Loops
+- `set` - Variable assignment
+- `now` - Current timestamp
 
 ## Example
 
@@ -50,9 +73,9 @@ server:
   desc: My MCP server
 
 tools:
-  MyTool:
+  Hello:
     cmd: echo "Hello {{ name }}"
-    desc: Simple tool
+    desc: Say hello
     args:
       - name: name
         help: Name to greet
