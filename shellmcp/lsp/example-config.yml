@@ -1,0 +1,184 @@
+# Example shellmcp configuration file
+# This file demonstrates the LSP server features:
+# - Schema validation
+# - Auto-completion
+# - Hover documentation
+# - Jinja2 template support
+
+server:
+  name: example-mcp-server
+  desc: Example MCP server demonstrating LSP features
+  version: "1.0.0"
+  env:
+    DEBUG: "false"
+    LOG_LEVEL: "INFO"
+
+# Reusable argument definitions
+args:
+  FilePath:
+    help: Path to a file
+    type: string
+    pattern: "^[^\\0]+$"
+  
+  DirectoryPath:
+    help: Path to a directory
+    type: string
+    pattern: "^[^\\0]+$"
+  
+  BooleanFlag:
+    help: Boolean flag
+    type: boolean
+    default: false
+
+# Tool definitions with Jinja2 templates
+tools:
+  ListFiles:
+    cmd: ls -la {{ path }}
+    desc: List files in a directory with detailed information
+    help-cmd: ls --help
+    args:
+      - name: path
+        help: Directory path to list
+        default: "."
+        ref: DirectoryPath
+
+  ReadFile:
+    cmd: cat {{ file }}
+    desc: Read and display the contents of a file
+    help-cmd: cat --help
+    args:
+      - name: file
+        help: File to read
+        ref: FilePath
+
+  ConditionalCommand:
+    cmd: |
+      {% if verbose %}
+      echo "Running in verbose mode..."
+      {% endif %}
+      echo "Executing: {{ command }}"
+      {% if output_file %}
+      {{ command }} > {{ output_file }}
+      {% else %}
+      {{ command }}
+      {% endif %}
+    desc: Execute a command with conditional logic
+    args:
+      - name: command
+        help: Command to execute
+        type: string
+      - name: verbose
+        help: Enable verbose output
+        ref: BooleanFlag
+      - name: output_file
+        help: Output file (optional)
+        type: string
+        default: ""
+
+# Resource definitions
+resources:
+  SystemInfo:
+    uri: "system://info"
+    name: "System Information"
+    description: "Current system information and status"
+    mime_type: "text/plain"
+    cmd: |
+      echo "=== System Information ==="
+      uname -a
+      echo ""
+      echo "=== Disk Usage ==="
+      df -h
+      echo ""
+      echo "=== Memory Usage ==="
+      free -h
+
+  ConfigFile:
+    uri: "file://config/{{ config_name }}"
+    name: "Configuration File"
+    description: "Read configuration file from filesystem"
+    mime_type: "text/plain"
+    file: "configs/{{ config_name }}.yml"
+    args:
+      - name: config_name
+        help: Configuration name
+        choices: ["development", "staging", "production"]
+        default: "development"
+
+  StaticText:
+    uri: "text://static"
+    name: "Static Text Resource"
+    description: "Direct static text content"
+    mime_type: "text/plain"
+    text: |
+      This is a static text resource.
+      
+      It can contain multiple lines and will be returned as-is.
+
+# Prompt definitions
+prompts:
+  CodeReview:
+    name: "Code Review Assistant"
+    description: "Generate a comprehensive code review prompt"
+    template: |
+      You are a senior software engineer conducting a code review. Please analyze the following {{ language }} code:
+
+      ```{{ language }}
+      {{ code }}
+      ```
+
+      **Review Criteria:**
+      - Code quality and best practices
+      - Performance implications
+      - Security considerations
+      - Maintainability and readability
+      - Error handling
+      {% if test_coverage %} - Test coverage and quality {% endif %}
+      {% if documentation %} - Documentation completeness {% endif %}
+
+      {% if focus_areas %}
+      **Special Focus Areas:**
+      {{ focus_areas }}
+      {% endif %}
+
+      Please provide:
+      1. **Strengths**: What the code does well
+      2. **Issues**: Specific problems or concerns
+      3. **Suggestions**: Concrete improvement recommendations
+      4. **Risk Assessment**: Potential risks and their severity
+
+      Format your response clearly with specific line references where applicable.
+    args:
+      - name: language
+        help: "Programming language"
+        choices: ["python", "javascript", "java", "go", "rust", "cpp"]
+        default: "python"
+      - name: code
+        help: "Code to review"
+        type: string
+      - name: focus_areas
+        help: "Specific areas to focus on (optional)"
+        type: string
+        default: ""
+      - name: test_coverage
+        help: "Include test coverage review"
+        ref: BooleanFlag
+      - name: documentation
+        help: "Include documentation review"
+        ref: BooleanFlag
+
+  Documentation:
+    name: "Documentation Generator"
+    description: "Generate documentation prompts for code"
+    file: "prompts/documentation_{{ language }}.txt"
+    args:
+      - name: language
+        help: "Programming language"
+        choices: ["python", "javascript", "java", "go", "rust", "cpp"]
+        default: "python"
+      - name: code
+        help: "Code to document"
+        type: string
+      - name: format
+        help: "Documentation format"
+        choices: ["markdown", "restructuredtext", "javadoc", "godoc"]
+        default: "markdown"

@@ -1,0 +1,96 @@
+{
+  "name": "shellmcp-lsp",
+  "displayName": "ShellMCP LSP",
+  "description": "Language Server Protocol support for shellmcp YAML configuration files",
+  "version": "0.1.0",
+  "publisher": "shellmcp",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:yaml"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "shellmcp-yaml",
+        "aliases": [
+          "ShellMCP YAML",
+          "shellmcp-yaml"
+        ],
+        "extensions": [
+          ".yml",
+          ".yaml"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "shellmcp-yaml",
+        "scopeName": "source.yaml.shellmcp",
+        "path": "./syntaxes/shellmcp-yaml.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "title": "ShellMCP LSP",
+      "properties": {
+        "shellmcp-lsp.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable ShellMCP LSP server"
+        },
+        "shellmcp-lsp.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces the communication between VS Code and the language server"
+        },
+        "shellmcp-lsp.schema.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable schema validation"
+        },
+        "shellmcp-lsp.completion.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable auto-completion"
+        },
+        "shellmcp-lsp.hover.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable hover documentation"
+        }
+      }
+    },
+    "yaml.schemas": {
+      "file:///path/to/shellmcp/lsp/schema.json": [
+        "*.yml",
+        "*.yaml"
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "16.x",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^8.1.0"
+  }
+}

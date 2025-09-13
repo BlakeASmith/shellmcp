@@ -1,0 +1,295 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ShellMCP YAML Configuration Schema",
+  "description": "Schema for shellmcp YAML configuration files",
+  "type": "object",
+  "required": ["server"],
+  "properties": {
+    "server": {
+      "type": "object",
+      "description": "Server configuration",
+      "required": ["name", "desc"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the MCP server"
+        },
+        "desc": {
+          "type": "string",
+          "description": "Description of the server"
+        },
+        "version": {
+          "type": "string",
+          "description": "Server version",
+          "default": "1.0.0"
+        },
+        "env": {
+          "type": "object",
+          "description": "Environment variables",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "args": {
+      "type": "object",
+      "description": "Reusable argument definitions",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["help"],
+        "properties": {
+          "help": {
+            "type": "string",
+            "description": "Argument description"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["string", "number", "boolean", "array"],
+            "default": "string",
+            "description": "Argument type"
+          },
+          "default": {
+            "description": "Default value (makes argument optional)"
+          },
+          "choices": {
+            "type": "array",
+            "description": "Allowed values for validation"
+          },
+          "pattern": {
+            "type": "string",
+            "description": "Regex pattern for validation"
+          }
+        }
+      }
+    },
+    "tools": {
+      "type": "object",
+      "description": "Tool definitions",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["cmd", "desc"],
+        "properties": {
+          "cmd": {
+            "type": "string",
+            "description": "Shell command to execute (supports Jinja2 templates)"
+          },
+          "desc": {
+            "type": "string",
+            "description": "Tool description"
+          },
+          "help-cmd": {
+            "type": "string",
+            "description": "Command to get help text"
+          },
+          "args": {
+            "type": "array",
+            "description": "Argument definitions",
+            "items": {
+              "type": "object",
+              "required": ["name", "help"],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Argument name"
+                },
+                "help": {
+                  "type": "string",
+                  "description": "Argument description"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": ["string", "number", "boolean", "array"],
+                  "default": "string",
+                  "description": "Argument type"
+                },
+                "default": {
+                  "description": "Default value (makes argument optional)"
+                },
+                "choices": {
+                  "type": "array",
+                  "description": "Allowed values"
+                },
+                "pattern": {
+                  "type": "string",
+                  "description": "Regex validation pattern"
+                },
+                "ref": {
+                  "type": "string",
+                  "description": "Reference to reusable argument definition"
+                }
+              }
+            }
+          },
+          "env": {
+            "type": "object",
+            "description": "Tool-specific environment variables",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "description": "Resource definitions",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["uri", "name"],
+        "properties": {
+          "uri": {
+            "type": "string",
+            "description": "Resource URI"
+          },
+          "name": {
+            "type": "string",
+            "description": "Resource name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Resource description"
+          },
+          "mime_type": {
+            "type": "string",
+            "description": "MIME type of the resource"
+          },
+          "cmd": {
+            "type": "string",
+            "description": "Shell command to generate resource content (supports Jinja2 templates)"
+          },
+          "file": {
+            "type": "string",
+            "description": "File path to read resource content from (supports Jinja2 templates)"
+          },
+          "text": {
+            "type": "string",
+            "description": "Direct text content for the resource (supports Jinja2 templates)"
+          },
+          "args": {
+            "type": "array",
+            "description": "Argument definitions for resource generation",
+            "items": {
+              "type": "object",
+              "required": ["name", "help"],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Argument name"
+                },
+                "help": {
+                  "type": "string",
+                  "description": "Argument description"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": ["string", "number", "boolean", "array"],
+                  "default": "string",
+                  "description": "Argument type"
+                },
+                "default": {
+                  "description": "Default value (makes argument optional)"
+                },
+                "choices": {
+                  "type": "array",
+                  "description": "Allowed values"
+                },
+                "pattern": {
+                  "type": "string",
+                  "description": "Regex validation pattern"
+                },
+                "ref": {
+                  "type": "string",
+                  "description": "Reference to reusable argument definition"
+                }
+              }
+            }
+          },
+          "env": {
+            "type": "object",
+            "description": "Resource-specific environment variables",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "prompts": {
+      "type": "object",
+      "description": "Prompt definitions",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Prompt name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Prompt description"
+          },
+          "cmd": {
+            "type": "string",
+            "description": "Shell command to generate prompt content (supports Jinja2 templates)"
+          },
+          "file": {
+            "type": "string",
+            "description": "File path to read prompt content from (supports Jinja2 templates)"
+          },
+          "template": {
+            "type": "string",
+            "description": "Direct Jinja2 template content for the prompt"
+          },
+          "args": {
+            "type": "array",
+            "description": "Argument definitions for prompt generation",
+            "items": {
+              "type": "object",
+              "required": ["name", "help"],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Argument name"
+                },
+                "help": {
+                  "type": "string",
+                  "description": "Argument description"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": ["string", "number", "boolean", "array"],
+                  "default": "string",
+                  "description": "Argument type"
+                },
+                "default": {
+                  "description": "Default value (makes argument optional)"
+                },
+                "choices": {
+                  "type": "array",
+                  "description": "Allowed values"
+                },
+                "pattern": {
+                  "type": "string",
+                  "description": "Regex validation pattern"
+                },
+                "ref": {
+                  "type": "string",
+                  "description": "Reference to reusable argument definition"
+                }
+              }
+            }
+          },
+          "env": {
+            "type": "object",
+            "description": "Prompt-specific environment variables",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
