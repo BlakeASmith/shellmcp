@@ -62,11 +62,8 @@ resources:
     name: "Configuration File"
     description: "Read configuration file from filesystem"
     mime_type: "text/plain"
-    file: "{{ config_path }}"
+    file: "{{ config_name }}"
     args:
-      - name: config_path
-        help: "Path to configuration file"
-        ref: FilePath
       - name: config_name
         help: "Configuration name"
         default: "default"
