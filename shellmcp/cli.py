@@ -6,14 +6,13 @@ from pathlib import Path
 from .parser import YMLParser
 
 
-def validate(config_file: str, verbose: bool = False, output_format: str = "text") -> int:
+def validate(config_file: str, verbose: bool = False) -> int:
     """
     Validate a YAML configuration file.
     
     Args:
         config_file: Path to the YAML configuration file
         verbose: Show detailed validation information
-        output_format: Output format ('text', 'json', 'yaml')
     
     Returns:
         Exit code (0 for success, 1 for failure)
@@ -29,12 +28,7 @@ def validate(config_file: str, verbose: bool = False, output_format: str = "text
         # Load and validate configuration
         config = parser.load_from_file(config_file)
         
-        if output_format == "json":
-            _output_json_validation(config, parser, verbose)
-        elif output_format == "yaml":
-            _output_yaml_validation(config, parser, verbose)
-        else:
-            _output_text_validation(config_file, config, parser, verbose)
+        _output_validation(config_file, config, parser, verbose)
         
         return 0
         
@@ -46,8 +40,8 @@ def validate(config_file: str, verbose: bool = False, output_format: str = "text
         return 1
 
 
-def _output_text_validation(config_file: str, config, parser, verbose: bool):
-    """Output validation results in text format."""
+def _output_validation(config_file: str, config, parser, verbose: bool):
+    """Output validation results."""
     print(f"✅ Configuration '{config_file}' is valid!")
     
     if verbose:
@@ -73,52 +67,6 @@ def _output_text_validation(config_file: str, config, parser, verbose: bool):
                 print(f"   {tool_name}: missing arguments for {missing_args}")
         else:
             print(f"\n✅ All template variables have corresponding arguments")
-
-
-def _output_json_validation(config, parser, verbose: bool):
-    """Output validation results in JSON format."""
-    import json
-    
-    result = {
-        "valid": True,
-        "server": {
-            "name": config.server.name,
-            "description": config.server.desc,
-            "version": config.server.version
-        },
-        "tools_count": len(config.tools) if config.tools else 0,
-        "reusable_args_count": len(config.args) if config.args else 0
-    }
-    
-    if verbose:
-        result["template_validation"] = parser.validate_all_templates()
-        result["consistency_issues"] = parser.validate_argument_consistency()
-        result["tools_summary"] = parser.get_tools_summary()
-    
-    print(json.dumps(result, indent=2))
-
-
-def _output_yaml_validation(config, parser, verbose: bool):
-    """Output validation results in YAML format."""
-    import yaml
-    
-    result = {
-        "valid": True,
-        "server": {
-            "name": config.server.name,
-            "description": config.server.desc,
-            "version": config.server.version
-        },
-        "tools_count": len(config.tools) if config.tools else 0,
-        "reusable_args_count": len(config.args) if config.args else 0
-    }
-    
-    if verbose:
-        result["template_validation"] = parser.validate_all_templates()
-        result["consistency_issues"] = parser.validate_argument_consistency()
-        result["tools_summary"] = parser.get_tools_summary()
-    
-    print(yaml.dump(result, default_flow_style=False))
 
 
 def main():

@@ -31,7 +31,6 @@ shellmcp validate <config_file> [flags]
 
 **Flags:**
 - `--verbose` / `-v`: Show detailed validation information
-- `--output_format` / `-o`: Output format (`text`, `json`, `yaml`)
 
 **Examples:**
 
@@ -41,12 +40,6 @@ shellmcp validate config.yml
 
 # Verbose validation with detailed output
 shellmcp validate config.yml --verbose
-
-# JSON output format
-shellmcp validate config.yml --output_format=json
-
-# YAML output format
-shellmcp validate config.yml --output_format=yaml
 ```
 
 **Output:**
@@ -59,9 +52,7 @@ The `validate` command performs comprehensive validation including:
 4. **Reference Resolution**: Validates argument references
 5. **Consistency Checks**: Ensures template variables have corresponding arguments
 
-## Output Formats
-
-### Text Format (Default)
+## Output
 
 Human-readable output with emojis and structured information:
 
@@ -79,56 +70,6 @@ Human-readable output with emojis and structured information:
    ✅ CreateDirectory
 
 ✅ All template variables have corresponding arguments
-```
-
-### JSON Format
-
-Structured JSON output for programmatic processing:
-
-```json
-{
-  "valid": true,
-  "server": {
-    "name": "filesystem-mcp",
-    "description": "MCP Server for filesystem operations",
-    "version": "1.0.0"
-  },
-  "tools_count": 6,
-  "reusable_args_count": 3,
-  "template_validation": {
-    "ListFiles": true,
-    "ReadFile": true,
-    "CreateDirectory": true
-  },
-  "consistency_issues": {},
-  "tools_summary": {
-    "ListFiles": {
-      "description": "List files in a directory",
-      "command": "ls -la {{ path }}",
-      "arguments_count": 1,
-      "template_variables": ["path"],
-      "has_valid_template": true
-    }
-  }
-}
-```
-
-### YAML Format
-
-YAML output for configuration processing:
-
-```yaml
-valid: true
-server:
-  name: filesystem-mcp
-  description: MCP Server for filesystem operations
-  version: "1.0.0"
-tools_count: 6
-reusable_args_count: 3
-template_validation:
-  ListFiles: true
-  ReadFile: true
-  CreateDirectory: true
 ```
 
 ## Error Handling
@@ -167,14 +108,8 @@ The CLI can be easily integrated into CI/CD pipelines:
 
 ```bash
 # In a CI script
-if ! shellmcp validate config.yml --output_format=json > validation.json; then
+if ! shellmcp validate config.yml; then
     echo "Configuration validation failed"
-    exit 1
-fi
-
-# Check specific validation results
-if jq -r '.template_validation | to_entries[] | select(.value == false) | .key' validation.json; then
-    echo "Some tools have invalid templates"
     exit 1
 fi
 ```
