@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 import shlex
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from fastmcp import FastMCP
 from jinja2 import Template, Environment
 
@@ -131,8 +131,8 @@ def readfile(file: str) -> Dict[str, Any]:
 
 # Resource handlers
 
-@mcp.resource()
-def systeminfo() -> Dict[str, Any]:
+@mcp.resource("system://info")
+def systeminfo() -> str:
     """
     Current system information from commands
     """
@@ -146,30 +146,20 @@ def systeminfo() -> Dict[str, Any]:
             raise ValueError(f"Command failed: {result['stderr']}")
         content = result["stdout"]
         
-        return {
-            "uri": "system://info",
-            "name": "System Information",
-            "description": "Current system information from commands",
-            "mimeType": "text/plain",
-            "text": content
-        }
+        return content
     except Exception as e:
         raise ValueError(f"Error in SystemInfo: {str(e)}")
 
 
-@mcp.resource()
-def configfile(config_path: str, config_name: str = "default") -> Dict[str, Any]:
+@mcp.resource("file://config/{config_name}")
+def configfile(config_name: str = "default") -> str:
     """
     Read configuration file from filesystem
     """
     try:
-        # Validate config_path pattern
-        import re
-        if not re.match(r"^[^\0]+$", str(config_path)):
-            raise ValueError(f"Invalid config_path: must match pattern ^[^\0]+$")
         
         # Read from file
-        file_path = render_template("""{{ config_path }}""", config_path=config_path, config_name=config_name)
+        file_path = render_template("""{{ config_name }}""", config_name=config_name)
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
@@ -178,19 +168,13 @@ def configfile(config_path: str, config_name: str = "default") -> Dict[str, Any]
         except Exception as e:
             raise ValueError(f"Error reading resource file {file_path}: {str(e)}")
         
-        return {
-            "uri": "file://config/{{ config_name }}",
-            "name": "Configuration File",
-            "description": "Read configuration file from filesystem",
-            "mimeType": "text/plain",
-            "text": content
-        }
+        return content
     except Exception as e:
         raise ValueError(f"Error in ConfigFile: {str(e)}")
 
 
-@mcp.resource()
-def statictext() -> Dict[str, Any]:
+@mcp.resource("text://static")
+def statictext() -> str:
     """
     Direct static text content
     """
@@ -199,19 +183,13 @@ def statictext() -> Dict[str, Any]:
         # Use direct text content
         content = render_template("""This is a static text resource that doesn't change.""", )
         
-        return {
-            "uri": "text://static",
-            "name": "Static Text Resource",
-            "description": "Direct static text content",
-            "mimeType": "text/plain",
-            "text": content
-        }
+        return content
     except Exception as e:
         raise ValueError(f"Error in StaticText: {str(e)}")
 
 
-@mcp.resource()
-def dynamictext(user_name: str = "User", resource_name: str = "default", include_timestamp: bool = False, include_system_info: bool = False) -> Dict[str, Any]:
+@mcp.resource("text://{resource_name}")
+def dynamictext(user_name: str = "User", resource_name: str = "default", include_timestamp: bool = False, include_system_info: bool = False) -> str:
     """
     Dynamic text content with variables
     """
@@ -231,13 +209,7 @@ System: {{ now().strftime('%Y-%m-%d') }}
 {% endif %}
 """, user_name=user_name, resource_name=resource_name, include_timestamp=include_timestamp, include_system_info=include_system_info)
         
-        return {
-            "uri": "text://{{ resource_name }}",
-            "name": "Dynamic Text Resource",
-            "description": "Dynamic text content with variables",
-            "mimeType": "text/plain",
-            "text": content
-        }
+        return content
     except Exception as e:
         raise ValueError(f"Error in DynamicText: {str(e)}")
 
@@ -245,7 +217,7 @@ System: {{ now().strftime('%Y-%m-%d') }}
 # Prompt handlers
 
 @mcp.prompt()
-def codereview(code: str, language: str = "python", focus_areas: str = "") -> Dict[str, Any]:
+def codereview(code: str, language: str = "python", focus_areas: str = "") -> str:
     """
     Generate a code review prompt via command
     """
@@ -277,25 +249,13 @@ echo \"Pay special attention to: {{ focus_areas }}\"
             raise ValueError(f"Command failed: {result['stderr']}")
         content = result["stdout"]
         
-        return {
-            "name": "Code Review Prompt",
-            "description": "Generate a code review prompt via command",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": {
-                        "type": "text",
-                        "text": content
-                    }
-                }
-            ]
-        }
+        return content
     except Exception as e:
         raise ValueError(f"Error in CodeReview: {str(e)}")
 
 
 @mcp.prompt()
-def codereviewtemplate(language: str = "python") -> Dict[str, Any]:
+def codereviewtemplate(language: str = "python") -> str:
     """
     Load code review prompt from template file
     """
@@ -314,25 +274,13 @@ def codereviewtemplate(language: str = "python") -> Dict[str, Any]:
         except Exception as e:
             raise ValueError(f"Error reading prompt file {file_path}: {str(e)}")
         
-        return {
-            "name": "Code Review Template",
-            "description": "Load code review prompt from template file",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": {
-                        "type": "text",
-                        "text": content
-                    }
-                }
-            ]
-        }
+        return content
     except Exception as e:
         raise ValueError(f"Error in CodeReviewTemplate: {str(e)}")
 
 
 @mcp.prompt()
-def simpletemplate(user_request: str, context: str = "", tone: str = "professional") -> Dict[str, Any]:
+def simpletemplate(user_request: str, context: str = "", tone: str = "professional") -> str:
     """
     Direct Jinja2 template prompt
     """
@@ -355,25 +303,13 @@ Please respond in a {{ tone }} tone.
 {% endif %}
 """, user_request=user_request, context=context, tone=tone)
         
-        return {
-            "name": "Simple Template Prompt",
-            "description": "Direct Jinja2 template prompt",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": {
-                        "type": "text",
-                        "text": content
-                    }
-                }
-            ]
-        }
+        return content
     except Exception as e:
         raise ValueError(f"Error in SimpleTemplate: {str(e)}")
 
 
 @mcp.prompt()
-def advancedtemplate(subject: str, content: str, role: str = "technical", task_type: str = "help", requirements: List[str] = [], output_format: str = "", include_examples: bool = False) -> Dict[str, Any]:
+def advancedtemplate(subject: str, content: str, role: str = "technical", task_type: str = "help", requirements: List[str] = [], output_format: str = "", include_examples: bool = False) -> str:
     """
     Complex template with conditional logic
     """
@@ -414,19 +350,7 @@ Please include examples where appropriate.
 {% endif %}
 """, role=role, task_type=task_type, subject=subject, content=content, requirements=requirements, output_format=output_format, include_examples=include_examples)
         
-        return {
-            "name": "Advanced Template Prompt",
-            "description": "Complex template with conditional logic",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": {
-                        "type": "text",
-                        "text": content
-                    }
-                }
-            ]
-        }
+        return content
     except Exception as e:
         raise ValueError(f"Error in AdvancedTemplate: {str(e)}")
 

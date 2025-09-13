@@ -1,153 +1,78 @@
-# filesystem-mcp
+# mCP Server Examples
 
-MCP Server for filesystem operations
+This directory contains example mCP servers demonstrating different features and capabilities.
 
-## Installation
+## 📁 Files
 
-### Option 1: Using Virtual Environment (Recommended)
+### Configuration Files
+- **`example_config.yml`** - Basic filesystem MCP server with tools only
+- **`comprehensive_config.yml`** - Complete example with tools, resources, and prompts
 
-1. **Create a virtual environment**:
-```bash
-python3 -m venv venv
-```
+### Generated Servers
+- **`comprehensive_mcp_server.py`** - Working server generated from comprehensive config
 
+### Supporting Files
+- **`requirements.txt`** - Python dependencies
+- **`docs/`** - Documentation files for file-based resources
+- **`prompts/`** - Template files for file-based prompts
 
-2. **Activate the virtual environment**:
-   ```bash
-   source venv/bin/activate
-   ```
+## 🚀 Quick Start
 
-3. **Install dependencies**:
-```bash
-pip install -r requirements.txt
-```
-
-4. **Run the server**:
-```bash
-python filesystem_mcp_server.py
-```
-
-5. **Deactivate when done** (optional):
-```bash
-deactivate
-```
-
-### Option 2: System-wide Installation
-
-1. **Install dependencies**:
+### 1. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-2. **Run the server**:
+### 2. Run the Comprehensive Server
 ```bash
-python filesystem_mcp_server.py
+python3 comprehensive_mcp_server.py
 ```
 
+## 📋 What's Demonstrated
 
-## Tools
+### Tools
+- **ListFiles** - List directory contents with `ls -la`
+- **ReadFile** - Read file contents with `cat`
 
+### Resources (3 types)
+- **Command-based**: `SystemInfo` - System information via shell commands
+- **File-based**: `ConfigFile` - Read files from filesystem
+- **Text-based**: `StaticText` and `DynamicText` - Direct text content with Jinja2 templating
 
-### ListFiles
+### Prompts (3 types)
+- **Command-based**: `CodeReview` - Generate prompts via shell commands
+- **File-based**: `CodeReviewTemplate` - Load prompts from template files
+- **Template-based**: `SimpleTemplate` and `AdvancedTemplate` - Direct Jinja2 templates
 
-List files in a directory with detailed information
+## 🔧 Features
 
-**Function**: `listfiles`
+- ✅ **Full FastMCP compatibility** - Proper URI templates and decorators
+- ✅ **Jinja2 templating** - Variables, conditionals, loops, filters
+- ✅ **Argument validation** - Types, patterns, choices, defaults
+- ✅ **Multiple content sources** - Commands, files, and direct text/templates
+- ✅ **Error handling** - Graceful failures and validation
 
-**Arguments**:
-- `path` (string): Path to a directory
-**Command**: `ls -la {{ path }}`
+## 📖 Configuration
 
+The servers are generated from YAML configuration files. See the YAML files for examples of:
 
-### ReadFile
+- Server metadata (name, description, version)
+- Reusable argument definitions
+- Tool configurations with shell commands
+- Resource configurations (cmd/file/text)
+- Prompt configurations (cmd/file/template)
+- Environment variables and validation rules
 
-Read and display the contents of a file
+## 🎯 Usage
 
-**Function**: `readfile`
+1. **Modify the YAML configuration** to match your needs
+2. **Generate a new server** using the shellmcp generator
+3. **Run the generated server** with FastMCP
 
-**Arguments**:
-- `file` (string): Path to a file
-**Command**: `cat {{ file }}`
+Example generation:
+```bash
+cd /workspace
+python3 -m shellmcp.generator /workspace/examples/configs/comprehensive_config.yml
+```
 
-
-### CreateDirectory
-
-Create a directory (and parent directories if needed)
-
-**Function**: `createdirectory`
-
-**Arguments**:
-- `path` (string): Path to a directory
-**Command**: `mkdir -p {{ path }}`
-
-
-### BackupDatabase
-
-Database backup with optional compression
-
-**Function**: `backupdatabase`
-
-**Arguments**:
-- `host` (string): Database host [default: localhost]- `user` (string): Database user- `password` (string): Database password- `database` (string): Database name- `compress` (boolean): Boolean flag [default: False]- `timestamp` (string): Timestamp for backup file [default: {{ now().strftime('%Y%m%d_%H%M%S') }}]
-**Command**: `{% set backup_file = "backup_" + timestamp + ".sql" %}
-mysqldump -h {{ host }} -u {{ user }} -p{{ password }} {{ database }} > {{ backup_file }}
-{% if compress %}
-gzip {{ backup_file }}
-{% endif %}
-echo "Backup completed: {{ backup_file }}"
-`
-
-
-### DockerContainer
-
-Manage Docker containers
-
-**Function**: `dockercontainer`
-
-**Arguments**:
-- `action` (string): Action to perform [choices: ['start', 'stop', 'restart', 'logs', 'inspect']]- `container` (string): Container name or ID
-**Command**: `{% if action == 'start' %}
-docker start {{ container }}
-{% elif action == 'stop' %}
-docker stop {{ container }}
-{% elif action == 'restart' %}
-docker restart {{ container }}
-{% else %}
-docker {{ action }} {{ container }}
-{% endif %}
-`
-
-
-### ConditionalDeploy
-
-Deploy service with environment-specific configuration
-
-**Function**: `conditionaldeploy`
-
-**Arguments**:
-- `env` (string): Deployment environment [default: dev] [choices: ['dev', 'staging', 'prod']]- `service` (string): Service name- `image` (string): Docker image to deploy
-**Command**: `{% if env == 'prod' %}
-docker run --restart=always -d --name {{ service }} {{ image }}
-{% elif env == 'staging' %}
-docker run -d --name {{ service }}_staging {{ image }}
-{% else %}
-docker run -d --name {{ service }}_dev {{ image }}
-{% endif %}
-`
-
-
-## Configuration
-
-This server was generated from a YAML configuration file. The server exposes shell commands as MCP tools with the following features:
-
-- Jinja2 template support for dynamic command generation
-- Argument validation with patterns and choices
-- Environment variable support
-- Error handling and timeout protection
-
-## Server Information
-
-- **Name**: filesystem-mcp
-- **Version**: 1.0.0
-- **Description**: MCP Server for filesystem operations
-- **Tools**: 6
+The generated server will be ready to run with FastMCP and will expose all configured tools, resources, and prompts via the MCP protocol.
