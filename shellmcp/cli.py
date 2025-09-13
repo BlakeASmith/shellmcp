@@ -2,12 +2,12 @@
 
 import fire
 import sys
-import yaml
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 from .parser import YMLParser
 from .generator import FastMCPGenerator
 from .models import YMLConfig, ServerConfig, ToolConfig, ResourceConfig, PromptConfig, ToolArgument, ArgumentDefinition
+from .utils import get_input, get_choice, get_yes_no, save_config, load_or_create_config
 
 
 def validate(config_file: str, verbose: bool = False) -> int:
@@ -147,86 +147,6 @@ def generate(config_file: str, output_dir: str = None, verbose: bool = False) ->
         return 1
 
 
-def _get_input(prompt: str, default: str = None, required: bool = True) -> str:
-    """Get user input with optional default value."""
-    if default:
-        full_prompt = f"{prompt} [{default}]: "
-    else:
-        full_prompt = f"{prompt}: "
-    
-    while True:
-        value = input(full_prompt).strip()
-        if value:
-            return value
-        elif default:
-            return default
-        elif not required:
-            return ""
-        else:
-            print("This field is required. Please enter a value.")
-
-
-def _get_choice(prompt: str, choices: List[str], default: str = None) -> str:
-    """Get user choice from a list of options."""
-    print(f"\n{prompt}")
-    for i, choice in enumerate(choices, 1):
-        marker = " (default)" if choice == default else ""
-        print(f"  {i}. {choice}{marker}")
-    
-    while True:
-        try:
-            choice_input = input(f"Enter choice (1-{len(choices)}): ").strip()
-            if not choice_input and default:
-                return default
-            
-            choice_num = int(choice_input)
-            if 1 <= choice_num <= len(choices):
-                return choices[choice_num - 1]
-            else:
-                print(f"Please enter a number between 1 and {len(choices)}")
-        except ValueError:
-            print("Please enter a valid number")
-
-
-def _get_yes_no(prompt: str, default: bool = None) -> bool:
-    """Get yes/no input from user."""
-    if default is True:
-        full_prompt = f"{prompt} [Y/n]: "
-    elif default is False:
-        full_prompt = f"{prompt} [y/N]: "
-    else:
-        full_prompt = f"{prompt} [y/n]: "
-    
-    while True:
-        value = input(full_prompt).strip().lower()
-        if value in ['y', 'yes']:
-            return True
-        elif value in ['n', 'no']:
-            return False
-        elif value == "" and default is not None:
-            return default
-        else:
-            print("Please enter 'y' for yes or 'n' for no")
-
-
-def _save_config(config: YMLConfig, file_path: str) -> None:
-    """Save configuration to YAML file."""
-    config_dict = config.model_dump(exclude_none=True)
-    
-    with open(file_path, 'w', encoding='utf-8') as f:
-        yaml.dump(config_dict, f, default_flow_style=False, sort_keys=False, indent=2)
-
-
-def _load_or_create_config(config_file: str) -> YMLConfig:
-    """Load existing config or create new one."""
-    if Path(config_file).exists():
-        parser = YMLParser()
-        return parser.load_from_file(config_file)
-    else:
-        # Create minimal config
-        return YMLConfig(server=ServerConfig(name="", desc=""))
-
-
 def new(name: str = None, desc: str = None, version: str = None, output_file: str = None) -> int:
     """
     Create a new shellmcp server configuration.
@@ -243,15 +163,15 @@ def new(name: str = None, desc: str = None, version: str = None, output_file: st
     try:
         # Get server name
         if not name:
-            name = _get_input("Server name", required=True)
+            name = get_input("Server name", required=True)
         
         # Get server description
         if not desc:
-            desc = _get_input("Server description", required=True)
+            desc = get_input("Server description", required=True)
         
         # Get version
         if not version:
-            version = _get_input("Server version", default="1.0.0")
+            version = get_input("Server version", default="1.0.0")
         
         # Determine output file
         if not output_file:
@@ -259,7 +179,7 @@ def new(name: str = None, desc: str = None, version: str = None, output_file: st
         
         # Check if file already exists
         if Path(output_file).exists():
-            overwrite = _get_yes_no(f"File '{output_file}' already exists. Overwrite?", default=False)
+            overwrite = get_yes_no(f"File '{output_file}' already exists. Overwrite?", default=False)
             if not overwrite:
                 print("❌ Operation cancelled")
                 return 1
@@ -274,7 +194,7 @@ def new(name: str = None, desc: str = None, version: str = None, output_file: st
         config = YMLConfig(server=server_config)
         
         # Save configuration
-        _save_config(config, output_file)
+        save_config(config, output_file)
         
         print(f"✅ Created new server configuration: {output_file}")
         print(f"📋 Server: {name} v{version}")
@@ -307,30 +227,30 @@ def add_tool(config_file: str, name: str = None, cmd: str = None, desc: str = No
     """
     try:
         # Load existing configuration
-        config = _load_or_create_config(config_file)
+        config = load_or_create_config(config_file)
         
         # Get tool name
         if not name:
-            name = _get_input("Tool name", required=True)
+            name = get_input("Tool name", required=True)
         
         # Check if tool already exists
         if config.tools and name in config.tools:
-            overwrite = _get_yes_no(f"Tool '{name}' already exists. Overwrite?", default=False)
+            overwrite = get_yes_no(f"Tool '{name}' already exists. Overwrite?", default=False)
             if not overwrite:
                 print("❌ Operation cancelled")
                 return 1
         
         # Get tool command
         if not cmd:
-            cmd = _get_input("Shell command (supports Jinja2 templates like {{arg_name}})", required=True)
+            cmd = get_input("Shell command (supports Jinja2 templates like {{arg_name}})", required=True)
         
         # Get tool description
         if not desc:
-            desc = _get_input("Tool description", required=True)
+            desc = get_input("Tool description", required=True)
         
         # Get help command (optional)
         if not help_cmd:
-            help_cmd = _get_input("Help command (optional, press Enter to skip)", required=False)
+            help_cmd = get_input("Help command (optional, press Enter to skip)", required=False)
         
         # Create tool configuration
         tool_config = ToolConfig(
@@ -345,7 +265,7 @@ def add_tool(config_file: str, name: str = None, cmd: str = None, desc: str = No
         config.tools[name] = tool_config
         
         # Save configuration
-        _save_config(config, config_file)
+        save_config(config, config_file)
         
         print(f"✅ Added tool '{name}' to {config_file}")
         print(f"📋 Tool: {name}")
@@ -380,38 +300,38 @@ def add_resource(config_file: str, name: str = None, uri: str = None, resource_n
     """
     try:
         # Load existing configuration
-        config = _load_or_create_config(config_file)
+        config = load_or_create_config(config_file)
         
         # Get resource name
         if not name:
-            name = _get_input("Resource name (key)", required=True)
+            name = get_input("Resource name (key)", required=True)
         
         # Check if resource already exists
         if config.resources and name in config.resources:
-            overwrite = _get_yes_no(f"Resource '{name}' already exists. Overwrite?", default=False)
+            overwrite = get_yes_no(f"Resource '{name}' already exists. Overwrite?", default=False)
             if not overwrite:
                 print("❌ Operation cancelled")
                 return 1
         
         # Get URI
         if not uri:
-            uri = _get_input("Resource URI", required=True)
+            uri = get_input("Resource URI", required=True)
         
         # Get resource display name
         if not resource_name:
-            resource_name = _get_input("Resource display name", default=name)
+            resource_name = get_input("Resource display name", default=name)
         
         # Get description
         if not description:
-            description = _get_input("Resource description", required=False)
+            description = get_input("Resource description", required=False)
         
         # Get MIME type
         if not content_type:
-            content_type = _get_input("MIME type (optional, e.g., text/plain, application/json)", required=False)
+            content_type = get_input("MIME type (optional, e.g., text/plain, application/json)", required=False)
         
         # Get content source type
         if not content_source:
-            content_source = _get_choice(
+            content_source = get_choice(
                 "How will the resource content be provided?",
                 ["cmd", "file", "text"],
                 default="cmd"
@@ -419,7 +339,7 @@ def add_resource(config_file: str, name: str = None, uri: str = None, resource_n
         
         # Get content based on source type
         if content_source == "cmd":
-            content = _get_input("Shell command to generate content (supports Jinja2 templates)", required=True)
+            content = get_input("Shell command to generate content (supports Jinja2 templates)", required=True)
             resource_config = ResourceConfig(
                 uri=uri,
                 name=resource_name,
@@ -428,7 +348,7 @@ def add_resource(config_file: str, name: str = None, uri: str = None, resource_n
                 cmd=content
             )
         elif content_source == "file":
-            content = _get_input("File path to read content from", required=True)
+            content = get_input("File path to read content from", required=True)
             resource_config = ResourceConfig(
                 uri=uri,
                 name=resource_name,
@@ -437,7 +357,7 @@ def add_resource(config_file: str, name: str = None, uri: str = None, resource_n
                 file=content
             )
         else:  # text
-            content = _get_input("Direct text content", required=True)
+            content = get_input("Direct text content", required=True)
             resource_config = ResourceConfig(
                 uri=uri,
                 name=resource_name,
@@ -452,7 +372,7 @@ def add_resource(config_file: str, name: str = None, uri: str = None, resource_n
         config.resources[name] = resource_config
         
         # Save configuration
-        _save_config(config, config_file)
+        save_config(config, config_file)
         
         print(f"✅ Added resource '{name}' to {config_file}")
         print(f"📋 Resource: {name}")
@@ -488,30 +408,30 @@ def add_prompt(config_file: str, name: str = None, prompt_name: str = None, desc
     """
     try:
         # Load existing configuration
-        config = _load_or_create_config(config_file)
+        config = load_or_create_config(config_file)
         
         # Get prompt name
         if not name:
-            name = _get_input("Prompt name (key)", required=True)
+            name = get_input("Prompt name (key)", required=True)
         
         # Check if prompt already exists
         if config.prompts and name in config.prompts:
-            overwrite = _get_yes_no(f"Prompt '{name}' already exists. Overwrite?", default=False)
+            overwrite = get_yes_no(f"Prompt '{name}' already exists. Overwrite?", default=False)
             if not overwrite:
                 print("❌ Operation cancelled")
                 return 1
         
         # Get prompt display name
         if not prompt_name:
-            prompt_name = _get_input("Prompt display name", default=name)
+            prompt_name = get_input("Prompt display name", default=name)
         
         # Get description
         if not description:
-            description = _get_input("Prompt description", required=False)
+            description = get_input("Prompt description", required=False)
         
         # Get content source type
         if not content_source:
-            content_source = _get_choice(
+            content_source = get_choice(
                 "How will the prompt content be provided?",
                 ["cmd", "file", "template"],
                 default="template"
@@ -519,21 +439,21 @@ def add_prompt(config_file: str, name: str = None, prompt_name: str = None, desc
         
         # Get content based on source type
         if content_source == "cmd":
-            content = _get_input("Shell command to generate prompt content (supports Jinja2 templates)", required=True)
+            content = get_input("Shell command to generate prompt content (supports Jinja2 templates)", required=True)
             prompt_config = PromptConfig(
                 name=prompt_name,
                 description=description,
                 cmd=content
             )
         elif content_source == "file":
-            content = _get_input("File path to read prompt content from", required=True)
+            content = get_input("File path to read prompt content from", required=True)
             prompt_config = PromptConfig(
                 name=prompt_name,
                 description=description,
                 file=content
             )
         else:  # template
-            content = _get_input("Jinja2 template content for the prompt", required=True)
+            content = get_input("Jinja2 template content for the prompt", required=True)
             prompt_config = PromptConfig(
                 name=prompt_name,
                 description=description,
@@ -546,7 +466,7 @@ def add_prompt(config_file: str, name: str = None, prompt_name: str = None, desc
         config.prompts[name] = prompt_config
         
         # Save configuration
-        _save_config(config, config_file)
+        save_config(config, config_file)
         
         print(f"✅ Added prompt '{name}' to {config_file}")
         print(f"📋 Prompt: {name}")
