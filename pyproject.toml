@@ -12,6 +12,7 @@ dependencies = [
     "pydantic>=2.0.0",
     "pyyaml>=6.0",
     "jinja2>=3.0.0",
+    "fire>=0.5.0",
 ]
 
 [project.optional-dependencies]
@@ -26,6 +27,9 @@ dev = [
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["shellmcp*"]
+
+[project.scripts]
+shellmcp = "shellmcp.cli:main"
 
 [tool.black]
 line-length = 88
