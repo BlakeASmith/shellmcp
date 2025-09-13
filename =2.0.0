@@ -1,0 +1,33 @@
+Collecting pydantic
+  Downloading pydantic-2.11.9-py3-none-any.whl (444 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 444.9/444.9 KB 7.4 MB/s eta 0:00:00
+Collecting pyyaml
+  Downloading PyYAML-6.0.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (751 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 751.2/751.2 KB 12.8 MB/s eta 0:00:00
+Collecting jinja2
+  Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 134.9/134.9 KB 14.8 MB/s eta 0:00:00
+Collecting fire
+  Downloading fire-0.7.1-py3-none-any.whl (115 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 115.9/115.9 KB 22.0 MB/s eta 0:00:00
+Collecting questionary
+  Downloading questionary-2.1.1-py3-none-any.whl (36 kB)
+Collecting pydantic-core==2.33.2
+  Downloading pydantic_core-2.33.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.0 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.0/2.0 MB 20.8 MB/s eta 0:00:00
+Collecting annotated-types>=0.6.0
+  Downloading annotated_types-0.7.0-py3-none-any.whl (13 kB)
+Collecting typing-inspection>=0.4.0
+  Downloading typing_inspection-0.4.1-py3-none-any.whl (14 kB)
+Requirement already satisfied: typing-extensions>=4.12.2 in /home/cursor/.local/lib/python3.10/site-packages (from pydantic) (4.15.0)
+Collecting MarkupSafe>=2.0
+  Downloading MarkupSafe-3.0.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (20 kB)
+Collecting termcolor
+  Downloading termcolor-3.1.0-py3-none-any.whl (7.7 kB)
+Collecting prompt_toolkit<4.0,>=2.0
+  Downloading prompt_toolkit-3.0.52-py3-none-any.whl (391 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 391.4/391.4 KB 27.4 MB/s eta 0:00:00
+Collecting wcwidth
+  Downloading wcwidth-0.2.13-py2.py3-none-any.whl (34 kB)
+Installing collected packages: wcwidth, typing-inspection, termcolor, pyyaml, pydantic-core, prompt_toolkit, MarkupSafe, annotated-types, questionary, pydantic, jinja2, fire
+Successfully installed MarkupSafe-3.0.2 annotated-types-0.7.0 fire-0.7.1 jinja2-3.1.6 prompt_toolkit-3.0.52 pydantic-2.11.9 pydantic-core-2.33.2 pyyaml-6.0.2 questionary-2.1.1 termcolor-3.1.0 typing-inspection-0.4.1 wcwidth-0.2.13
