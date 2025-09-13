@@ -1,0 +1,4 @@
+server:
+  name: Test Server
+  desc: A test server
+  version: 1.0.0
