@@ -1,0 +1,82 @@
+# Docker management server configuration
+server:
+  name: docker-mcp
+  desc: MCP Server for Docker container management
+  version: "1.0.0"
+  env:
+    DOCKER_HOST: "unix:///var/run/docker.sock"
+
+# Reusable argument definitions
+args:
+  ContainerName:
+    help: Docker container name or ID
+    type: string
+    pattern: "^[a-zA-Z0-9][a-zA-Z0-9_.-]*$"
+  
+  ImageName:
+    help: Docker image name
+    type: string
+    pattern: "^[a-zA-Z0-9][a-zA-Z0-9_.-]*(:[a-zA-Z0-9_.-]*)?$"
+
+tools:
+  ListContainers:
+    cmd: docker ps {{ all_flag }}
+    desc: List Docker containers
+    help-cmd: docker ps --help
+    args:
+      - name: all_flag
+        help: Show all containers (including stopped)
+        type: boolean
+        default: false
+
+  StartContainer:
+    cmd: docker start {{ container }}
+    desc: Start a stopped Docker container
+    args:
+      - name: container
+        help: Container to start
+        ref: ContainerName
+
+  StopContainer:
+    cmd: docker stop {{ container }}
+    desc: Stop a running Docker container
+    args:
+      - name: container
+        help: Container to stop
+        ref: ContainerName
+
+  RunContainer:
+    cmd: |
+      {% if interactive %}
+      docker run -it --rm {{ image }} {{ command }}
+      {% else %}
+      docker run --rm {{ image }} {{ command }}
+      {% endif %}
+    desc: Run a Docker container
+    args:
+      - name: image
+        help: Docker image to run
+        ref: ImageName
+      - name: command
+        help: Command to run in container
+        default: ""
+      - name: interactive
+        help: Run in interactive mode
+        type: boolean
+        default: false
+
+  ContainerLogs:
+    cmd: docker logs {{ follow_flag }} {{ tail_lines }} {{ container }}
+    desc: Show container logs
+    args:
+      - name: container
+        help: Container to show logs for
+        ref: ContainerName
+      - name: follow_flag
+        help: Follow log output
+        type: boolean
+        default: false
+      - name: tail_lines
+        help: Number of lines to show from end of logs
+        type: number
+        default: 100
