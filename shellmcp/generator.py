@@ -60,8 +60,33 @@ class FastMCPGenerator:
     
     def _generate_server_code(self, config: YMLConfig) -> str:
         """Generate FastMCP server code from configuration using Jinja2 templates."""
+        # Execute help commands and include output in template context
+        help_outputs = {}
+        if config.tools:
+            for tool_name, tool in config.tools.items():
+                if tool.help_cmd:
+                    try:
+                        result = subprocess.run(
+                            tool.help_cmd,
+                            shell=True,
+                            capture_output=True,
+                            text=True,
+                            timeout=30  # 30 second timeout for help commands
+                        )
+                        help_outputs[tool_name] = {
+                            'success': result.returncode == 0,
+                            'stdout': result.stdout.strip(),
+                            'stderr': result.stderr.strip()
+                        }
+                    except (subprocess.TimeoutExpired, Exception) as e:
+                        help_outputs[tool_name] = {
+                            'success': False,
+                            'stdout': '',
+                            'stderr': f'Failed to execute help command: {str(e)}'
+                        }
+        
         template = self.jinja_env.get_template('server.py.j2')
-        return template.render(config=config)
+        return template.render(config=config, help_outputs=help_outputs)
     
     
     def generate_requirements(self, output_file: Optional[str] = None) -> str:

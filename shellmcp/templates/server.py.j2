@@ -95,6 +95,33 @@ os.environ["{{ key }}"] = "{{ value }}"
 def {{ func_name }}({{ param_str }}) -> Dict[str, Any]:
     """
     {{ tool.desc }}
+{% if tool.help_cmd and help_outputs.get(tool_name) %}
+    
+    Help:
+{{ help_outputs[tool_name].stdout|indent(4, first=True) }}
+{% elif tool.help_cmd %}
+    
+    Help: Run `{{ tool.help_cmd }}` for more information.
+{% endif %}
+{% if resolved_args %}
+    
+    Parameters:
+{% for arg in resolved_args %}
+    - {{ arg.name }} ({{ arg.type }}): {{ arg.help }}
+{% if arg.default is not none %}
+      Default: {{ arg.default }}
+{% endif %}
+{% if arg.choices %}
+      Allowed values: {{ arg.choices|join(', ') }}
+{% endif %}
+{% if arg.pattern %}
+      Pattern: {{ arg.pattern }}
+{% endif %}
+{% endfor %}
+{% endif %}
+    
+    Returns:
+        Dict[str, Any]: Command execution result with 'success', 'stdout', 'stderr', and 'returncode' fields.
     """
     try:
 {% for arg in resolved_args %}
@@ -156,6 +183,25 @@ def {{ func_name }}({{ param_str }}) -> Dict[str, Any]:
 def {{ func_name }}({{ param_str }}) -> str:
     """
     {{ resource.description or resource.name }}
+{% if resolved_args %}
+    
+    Parameters:
+{% for arg in resolved_args %}
+    - {{ arg.name }} ({{ arg.type }}): {{ arg.help }}
+{% if arg.default is not none %}
+      Default: {{ arg.default }}
+{% endif %}
+{% if arg.choices %}
+      Allowed values: {{ arg.choices|join(', ') }}
+{% endif %}
+{% if arg.pattern %}
+      Pattern: {{ arg.pattern }}
+{% endif %}
+{% endfor %}
+{% endif %}
+    
+    Returns:
+        str: The resource content.
     """
     try:
 {% for arg in resolved_args %}
@@ -229,6 +275,25 @@ def {{ func_name }}({{ param_str }}) -> str:
 def {{ func_name }}({{ param_str }}) -> str:
     """
     {{ prompt.description or prompt.name }}
+{% if resolved_args %}
+    
+    Parameters:
+{% for arg in resolved_args %}
+    - {{ arg.name }} ({{ arg.type }}): {{ arg.help }}
+{% if arg.default is not none %}
+      Default: {{ arg.default }}
+{% endif %}
+{% if arg.choices %}
+      Allowed values: {{ arg.choices|join(', ') }}
+{% endif %}
+{% if arg.pattern %}
+      Pattern: {{ arg.pattern }}
+{% endif %}
+{% endfor %}
+{% endif %}
+    
+    Returns:
+        str: The generated prompt content.
     """
     try:
 {% for arg in resolved_args %}
