@@ -144,9 +144,38 @@ def generate(config_file: str, output_dir: str = None, verbose: bool = False) ->
         return 1
 
 
+def lsp(log_level: str = "INFO") -> int:
+    """
+    Start the LSP server for shellmcp YAML files.
+    
+    Args:
+        log_level: Logging level (DEBUG, INFO, WARNING, ERROR)
+    
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    try:
+        from .lsp.server import create_server
+        import logging
+        
+        # Configure logging
+        logging.basicConfig(level=getattr(logging, log_level.upper()))
+        
+        # Create and start server
+        server = create_server()
+        server.start_io()
+        
+        return 0
+        
+    except Exception as e:
+        print(f"❌ Error starting LSP server: {e}", file=sys.stderr)
+        return 1
+
+
 def main():
     """Main CLI entry point using Fire."""
     fire.Fire({
         'validate': validate,
-        'generate': generate
+        'generate': generate,
+        'lsp': lsp
     })
