@@ -134,6 +134,164 @@ def {{ func_name }}({{ param_str }}) -> Dict[str, Any]:
 
 {% endfor %}
 
+{% if config.resources %}
+# Resource handlers
+{% for resource_name, resource in config.resources.items() %}
+{% set func_name = resource_name.lower().replace('-', '_') %}
+{% set resolved_args = config.get_resolved_resource_arguments(resource_name) %}
+{% set params_with_defaults = [] %}
+{% set params_without_defaults = [] %}
+{% for arg in resolved_args %}
+{% if arg.default is not none %}
+{% set param = arg.name + ": " + (arg.type|python_type) + " = " + (arg.default|python_value(arg.type)) %}
+{% set _ = params_with_defaults.append(param) %}
+{% else %}
+{% set param = arg.name + ": " + (arg.type|python_type) %}
+{% set _ = params_without_defaults.append(param) %}
+{% endif %}
+{% endfor %}
+{% set param_str = (params_without_defaults + params_with_defaults)|join(", ") %}
+
+@mcp.resource()
+def {{ func_name }}({{ param_str }}) -> Dict[str, Any]:
+    """
+    {{ resource.description or resource.name }}
+    """
+    try:
+{% for arg in resolved_args %}
+{% if arg.pattern %}
+        # Validate {{ arg.name }} pattern
+        import re
+        if not re.match(r"{{ arg.pattern }}", str({{ arg.name }})):
+            raise ValueError(f"Invalid {{ arg.name }}: must match pattern {{ arg.pattern }}")
+{% endif %}
+{% if arg.choices %}
+        # Validate {{ arg.name }} choices
+        if {{ arg.name }} not in {{ arg.choices }}:
+            raise ValueError(f"Invalid {{ arg.name }}: must be one of {{ arg.choices }}")
+{% endif %}
+{% endfor %}
+        
+{% if resource.file %}
+        # Read from file
+        file_path = render_template("""{{ resource.file|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+        except FileNotFoundError:
+            raise ValueError(f"Resource file not found: {file_path}")
+        except Exception as e:
+            raise ValueError(f"Error reading resource file {file_path}: {str(e)}")
+{% else %}
+        # Execute command
+        cmd = render_template("""{{ resource.cmd|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
+        env_vars = {}
+{% if resource.env %}
+{% for key, value in resource.env.items() %}
+        env_vars["{{ key }}"] = "{{ value }}"
+{% endfor %}
+{% endif %}
+        result = execute_command(cmd, env_vars)
+        if not result["success"]:
+            raise ValueError(f"Command failed: {result['stderr']}")
+        content = result["stdout"]
+{% endif %}
+        
+        return {
+            "uri": "{{ resource.uri }}",
+            "name": "{{ resource.name }}",
+            "description": "{{ resource.description or '' }}",
+            "mimeType": "{{ resource.mime_type or 'text/plain' }}",
+            "text": content
+        }
+    except Exception as e:
+        raise ValueError(f"Error in {{ resource_name }}: {str(e)}")
+
+{% endfor %}
+{% endif %}
+
+{% if config.prompts %}
+# Prompt handlers
+{% for prompt_name, prompt in config.prompts.items() %}
+{% set func_name = prompt_name.lower().replace('-', '_') %}
+{% set resolved_args = config.get_resolved_prompt_arguments(prompt_name) %}
+{% set params_with_defaults = [] %}
+{% set params_without_defaults = [] %}
+{% for arg in resolved_args %}
+{% if arg.default is not none %}
+{% set param = arg.name + ": " + (arg.type|python_type) + " = " + (arg.default|python_value(arg.type)) %}
+{% set _ = params_with_defaults.append(param) %}
+{% else %}
+{% set param = arg.name + ": " + (arg.type|python_type) %}
+{% set _ = params_without_defaults.append(param) %}
+{% endif %}
+{% endfor %}
+{% set param_str = (params_without_defaults + params_with_defaults)|join(", ") %}
+
+@mcp.prompt()
+def {{ func_name }}({{ param_str }}) -> Dict[str, Any]:
+    """
+    {{ prompt.description or prompt.name }}
+    """
+    try:
+{% for arg in resolved_args %}
+{% if arg.pattern %}
+        # Validate {{ arg.name }} pattern
+        import re
+        if not re.match(r"{{ arg.pattern }}", str({{ arg.name }})):
+            raise ValueError(f"Invalid {{ arg.name }}: must match pattern {{ arg.pattern }}")
+{% endif %}
+{% if arg.choices %}
+        # Validate {{ arg.name }} choices
+        if {{ arg.name }} not in {{ arg.choices }}:
+            raise ValueError(f"Invalid {{ arg.name }}: must be one of {{ arg.choices }}")
+{% endif %}
+{% endfor %}
+        
+{% if prompt.file %}
+        # Read from file
+        file_path = render_template("""{{ prompt.file|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+        except FileNotFoundError:
+            raise ValueError(f"Prompt file not found: {file_path}")
+        except Exception as e:
+            raise ValueError(f"Error reading prompt file {file_path}: {str(e)}")
+{% else %}
+        # Execute command
+        cmd = render_template("""{{ prompt.cmd|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
+        env_vars = {}
+{% if prompt.env %}
+{% for key, value in prompt.env.items() %}
+        env_vars["{{ key }}"] = "{{ value }}"
+{% endfor %}
+{% endif %}
+        result = execute_command(cmd, env_vars)
+        if not result["success"]:
+            raise ValueError(f"Command failed: {result['stderr']}")
+        content = result["stdout"]
+{% endif %}
+        
+        return {
+            "name": "{{ prompt.name }}",
+            "description": "{{ prompt.description or '' }}",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": {
+                        "type": "text",
+                        "text": content
+                    }
+                }
+            ]
+        }
+    except Exception as e:
+        raise ValueError(f"Error in {{ prompt_name }}: {str(e)}")
+
+{% endfor %}
+{% endif %}
+
 if __name__ == "__main__":
     print(f"Starting {SERVER_NAME} v{SERVER_VERSION}")
     print(f"Description: {SERVER_DESC}")

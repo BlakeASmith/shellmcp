@@ -126,3 +126,233 @@ tools:
         type: string
     env:
       DOCKER_HOST: "unix:///var/run/docker.sock"
+
+# Resource definitions
+resources:
+  SystemInfo:
+    uri: "system://info"
+    name: "System Information"
+    description: "Current system information and status"
+    mime_type: "text/plain"
+    cmd: |
+      echo "=== System Information ==="
+      uname -a
+      echo ""
+      echo "=== Disk Usage ==="
+      df -h
+      echo ""
+      echo "=== Memory Usage ==="
+      free -h
+      echo ""
+      echo "=== Running Processes ==="
+      ps aux | head -10
+
+  LogFile:
+    uri: "file://logs/{{ log_name }}"
+    name: "Log File Reader"
+    description: "Read and display log file contents"
+    mime_type: "text/plain"
+    cmd: |
+      {% if tail %}
+      tail -n {{ lines }} {{ log_path }}
+      {% else %}
+      head -n {{ lines }} {{ log_path }}
+      {% endif %}
+    args:
+      - name: log_path
+        help: "Path to log file"
+        ref: FilePath
+      - name: log_name
+        help: "Log file name for URI"
+        default: "default"
+      - name: lines
+        help: "Number of lines to display"
+        type: number
+        default: 50
+      - name: tail
+        help: "Show tail (end) of file instead of head"
+        ref: BooleanFlag
+
+  DockerStatus:
+    uri: "docker://status"
+    name: "Docker Status"
+    description: "Current Docker container status"
+    mime_type: "text/plain"
+    cmd: |
+      echo "=== Docker Version ==="
+      docker --version
+      echo ""
+      echo "=== Running Containers ==="
+      docker ps
+      echo ""
+      echo "=== All Containers ==="
+      docker ps -a
+      echo ""
+      echo "=== Docker Images ==="
+      docker images
+
+# Prompt definitions
+prompts:
+  CodeReview:
+    name: "Code Review Assistant"
+    description: "Generate a comprehensive code review prompt"
+    cmd: |
+      You are a senior software engineer conducting a code review. Please analyze the following {{ language }} code:
+
+      ```{{ language }}
+      {{ code }}
+      ```
+
+      **Review Criteria:**
+      - Code quality and best practices
+      - Performance implications
+      - Security considerations
+      - Maintainability and readability
+      - Error handling
+      {% if test_coverage %} - Test coverage and quality {% endif %}
+      {% if documentation %} - Documentation completeness {% endif %}
+
+      {% if focus_areas %}
+      **Special Focus Areas:**
+      {{ focus_areas }}
+      {% endif %}
+
+      Please provide:
+      1. **Strengths**: What the code does well
+      2. **Issues**: Specific problems or concerns
+      3. **Suggestions**: Concrete improvement recommendations
+      4. **Risk Assessment**: Potential risks and their severity
+
+      Format your response clearly with specific line references where applicable.
+    args:
+      - name: language
+        help: "Programming language"
+        choices: ["python", "javascript", "java", "go", "rust", "cpp"]
+        default: "python"
+      - name: code
+        help: "Code to review"
+        type: string
+      - name: focus_areas
+        help: "Specific areas to focus on (optional)"
+        type: string
+        default: ""
+      - name: test_coverage
+        help: "Include test coverage review"
+        ref: BooleanFlag
+      - name: documentation
+        help: "Include documentation review"
+        ref: BooleanFlag
+
+  BugAnalysis:
+    name: "Bug Analysis Assistant"
+    description: "Generate a bug analysis and debugging prompt"
+    cmd: |
+      You are an expert software engineer helping to analyze and debug an issue. Here are the details:
+
+      **Bug Description:**
+      {{ bug_description }}
+
+      **Environment:**
+      - Language: {{ language }}
+      - Platform: {{ platform }}
+      {% if version %} - Version: {{ version }} {% endif %}
+
+      **Error Details:**
+      ```
+      {{ error_message }}
+      ```
+
+      **Relevant Code:**
+      ```{{ language }}
+      {{ code }}
+      ```
+
+      {% if logs %}
+      **Log Output:**
+      ```
+      {{ logs }}
+      ```
+      {% endif %}
+
+      Please help analyze this issue by providing:
+      1. **Root Cause Analysis**: What likely caused this bug
+      2. **Debugging Steps**: Specific steps to reproduce and debug
+      3. **Potential Solutions**: Possible fixes and their trade-offs
+      4. **Prevention**: How to prevent similar issues in the future
+      5. **Testing Strategy**: How to test the fix
+
+      Focus on practical, actionable advice.
+    args:
+      - name: bug_description
+        help: "Description of the bug"
+        type: string
+      - name: language
+        help: "Programming language"
+        choices: ["python", "javascript", "java", "go", "rust", "cpp"]
+        default: "python"
+      - name: platform
+        help: "Platform/OS"
+        default: "linux"
+      - name: version
+        help: "Software version (optional)"
+        type: string
+        default: ""
+      - name: error_message
+        help: "Error message or stack trace"
+        type: string
+      - name: code
+        help: "Relevant code snippet"
+        type: string
+      - name: logs
+        help: "Log output (optional)"
+        type: string
+        default: ""
+
+  Documentation:
+    name: "Documentation Generator"
+    description: "Generate documentation prompts for code"
+    cmd: |
+      You are a technical writer creating comprehensive documentation. Please generate documentation for the following {{ language }} code:
+
+      ```{{ language }}
+      {{ code }}
+      ```
+
+      **Documentation Requirements:**
+      - **Purpose**: What this code does and why
+      - **API Reference**: Function/class signatures and parameters
+      - **Usage Examples**: How to use this code
+      - **Parameters**: Detailed parameter descriptions
+      - **Return Values**: What the code returns
+      - **Exceptions**: Possible exceptions and error conditions
+      {% if performance %} - **Performance**: Performance characteristics and considerations {% endif %}
+      {% if security %} - **Security**: Security considerations and best practices {% endif %}
+
+      {% if doc_style %}
+      **Documentation Style:**
+      {{ doc_style }}
+      {% endif %}
+
+      Format the documentation in {{ format }} style, making it clear and comprehensive for developers.
+    args:
+      - name: language
+        help: "Programming language"
+        choices: ["python", "javascript", "java", "go", "rust", "cpp"]
+        default: "python"
+      - name: code
+        help: "Code to document"
+        type: string
+      - name: format
+        help: "Documentation format"
+        choices: ["markdown", "restructuredtext", "javadoc", "godoc"]
+        default: "markdown"
+      - name: doc_style
+        help: "Specific documentation style requirements (optional)"
+        type: string
+        default: ""
+      - name: performance
+        help: "Include performance documentation"
+        ref: BooleanFlag
+      - name: security
+        help: "Include security considerations"
+        ref: BooleanFlag
