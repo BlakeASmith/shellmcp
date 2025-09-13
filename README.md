@@ -57,8 +57,6 @@ pip install shellmcp
 ## Documentation
 
 - [YAML Specification](docs/yml-specification.md)
-- [CLI Documentation](docs/agentdocs/cli/README.md)
-- [Generator Documentation](docs/agentdocs/generator/README.md)
 
 ## License
 
