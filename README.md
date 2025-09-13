@@ -4,6 +4,10 @@
 
 ShellMCP is a powerful tool that allows you to easily create Model Context Protocol (MCP) servers by exposing shell commands as structured tools. Define your tools in YAML, and ShellMCP generates a complete FastMCP server for you.
 
+## Motivation
+
+AI agents need safe, controlled access to system functionality. Instead of granting full shell access (which poses security risks), ShellMCP enables you to expose only the specific commands you trust. This allows AI agents to work autonomously with a predefined set of safe operations, eliminating the risk of unintended system modifications or security breaches.
+
 ## Quick Start
 
 ```bash
