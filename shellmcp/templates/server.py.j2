@@ -152,8 +152,8 @@ def {{ func_name }}({{ param_str }}) -> Dict[str, Any]:
 {% endfor %}
 {% set param_str = (params_without_defaults + params_with_defaults)|join(", ") %}
 
-@mcp.resource()
-def {{ func_name }}({{ param_str }}) -> Dict[str, Any]:
+@mcp.resource("{{ resource.uri }}")
+def {{ func_name }}({{ param_str }}) -> str:
     """
     {{ resource.description or resource.name }}
     """
@@ -200,13 +200,7 @@ def {{ func_name }}({{ param_str }}) -> Dict[str, Any]:
         content = result["stdout"]
 {% endif %}
         
-        return {
-            "uri": "{{ resource.uri }}",
-            "name": "{{ resource.name }}",
-            "description": "{{ resource.description or '' }}",
-            "mimeType": "{{ resource.mime_type or 'text/plain' }}",
-            "text": content
-        }
+        return content
     except Exception as e:
         raise ValueError(f"Error in {{ resource_name }}: {str(e)}")
 
@@ -232,7 +226,7 @@ def {{ func_name }}({{ param_str }}) -> Dict[str, Any]:
 {% set param_str = (params_without_defaults + params_with_defaults)|join(", ") %}
 
 @mcp.prompt()
-def {{ func_name }}({{ param_str }}) -> Dict[str, Any]:
+def {{ func_name }}({{ param_str }}) -> str:
     """
     {{ prompt.description or prompt.name }}
     """
@@ -279,19 +273,7 @@ def {{ func_name }}({{ param_str }}) -> Dict[str, Any]:
         content = result["stdout"]
 {% endif %}
         
-        return {
-            "name": "{{ prompt.name }}",
-            "description": "{{ prompt.description or '' }}",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": {
-                        "type": "text",
-                        "text": content
-                    }
-                }
-            ]
-        }
+        return content
     except Exception as e:
         raise ValueError(f"Error in {{ prompt_name }}: {str(e)}")
 
