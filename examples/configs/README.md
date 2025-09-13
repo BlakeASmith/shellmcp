@@ -11,19 +11,10 @@ MCP Server for filesystem operations
 python3 -m venv venv
 ```
 
-**Note**: On Ubuntu/Debian systems, if you get an "ensurepip is not available" error, install the python3-venv package first:
-```bash
-sudo apt install python3-venv
-```
 
 2. **Activate the virtual environment**:
-   - **Linux/macOS**:
    ```bash
    source venv/bin/activate
-   ```
-   - **Windows**:
-   ```cmd
-   venv\Scripts\activate
    ```
 
 3. **Install dependencies**:

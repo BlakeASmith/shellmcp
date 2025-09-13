@@ -36,12 +36,8 @@ def setup_virtual_environment(server_dir):
     print("✅ Virtual environment created successfully")
     
     # Determine activation script path
-    if sys.platform == "win32":
-        activate_script = venv_path / "Scripts" / "activate.bat"
-        pip_path = venv_path / "Scripts" / "pip"
-    else:
-        activate_script = venv_path / "bin" / "activate"
-        pip_path = venv_path / "bin" / "pip"
+    activate_script = venv_path / "bin" / "activate"
+    pip_path = venv_path / "bin" / "pip"
     
     # Install dependencies
     requirements_file = server_path / "requirements.txt"
@@ -60,17 +56,11 @@ def setup_virtual_environment(server_dir):
     # Show activation instructions
     print(f"\n🎉 Virtual environment setup complete!")
     print(f"\n📋 To activate the virtual environment:")
-    if sys.platform == "win32":
-        print(f"   {activate_script}")
-    else:
-        print(f"   source {activate_script}")
+    print(f"   source {activate_script}")
     
     print(f"\n🚀 To run the server:")
     print(f"   cd {server_path}")
-    if sys.platform == "win32":
-        print(f"   {activate_script}")
-    else:
-        print(f"   source {activate_script}")
+    print(f"   source {activate_script}")
     
     # Find the server script
     server_scripts = list(server_path.glob("*_server.py"))
@@ -79,7 +69,7 @@ def setup_virtual_environment(server_dir):
         print(f"   python {server_script.name}")
     
     print(f"\n⚙️  For MCP configuration:")
-    print(f"   Use Python path: {venv_path / ('Scripts' if sys.platform == 'win32' else 'bin') / 'python'}")
+    print(f"   Use Python path: {venv_path / 'bin' / 'python'}")
     
     return True
 

@@ -299,17 +299,12 @@ if __name__ == "__main__":
 
 1. **Create Virtual Environment**:
    ```bash
-   python -m venv venv
+   python3 -m venv venv
    ```
 
 2. **Activate Virtual Environment**:
-   - **Linux/macOS**:
    ```bash
    source venv/bin/activate
-   ```
-   - **Windows**:
-   ```cmd
-   venv\Scripts\activate
    ```
 
 3. **Install Dependencies**:
@@ -356,9 +351,8 @@ if __name__ == "__main__":
 
 **Common Issues:**
 - **Virtual environment not found**: Ensure `venv` directory exists in your server directory
-- **Python interpreter not found**: Check that `venv/bin/python` (Linux/macOS) or `venv\Scripts\python.exe` (Windows) exists
+- **Python interpreter not found**: Check that `venv/bin/python` exists
 - **Dependencies missing**: Activate the virtual environment and run `pip install -r requirements.txt`
-- **`ensurepip` not available**: Install the python3-venv package (Ubuntu/Debian)
 
 **Quick Fix:**
 ```bash
@@ -369,19 +363,8 @@ cd /path/to/your/server
 python3 -m venv venv
 
 # Activate and install dependencies
-source venv/bin/activate  # Linux/macOS
-# or venv\Scripts\activate  # Windows
+source venv/bin/activate
 pip install -r requirements.txt
-```
-
-**Ubuntu/Debian Systems:**
-If you get an "ensurepip is not available" error:
-```bash
-# Install python3-venv package
-sudo apt install python3-venv
-
-# Then create the virtual environment
-python3 -m venv venv
 ```
 
 **Alternative: Using virtualenv**
@@ -394,8 +377,7 @@ pip install virtualenv
 virtualenv venv
 
 # Activate
-source venv/bin/activate  # Linux/macOS
-# or venv\Scripts\activate  # Windows
+source venv/bin/activate
 ```
 
 ### Testing Your Configuration
