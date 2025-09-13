@@ -111,8 +111,8 @@ tools:
         config = parser.load_from_string(yaml_content)
         
         validation_results = parser.validate_all_templates()
-        assert validation_results["ValidTool"] is True
-        assert validation_results["InvalidTool"] is False
+        assert validation_results["tools"]["ValidTool"] is True
+        assert validation_results["tools"]["InvalidTool"] is False
     
     def test_get_tool_template_variables(self):
         """Test extracting template variables from tools."""
@@ -218,9 +218,9 @@ tools:
         config = parser.load_from_string(yaml_content)
         
         issues = parser.validate_argument_consistency()
-        assert "ConsistentTool" not in issues
-        assert "InconsistentTool" in issues
-        assert "extra" in issues["InconsistentTool"]
+        assert "ConsistentTool" not in issues["tools"]
+        assert "InconsistentTool" in issues["tools"]
+        assert "extra" in issues["tools"]["InconsistentTool"]
     
     def test_get_server_info(self):
         """Test getting server information."""
