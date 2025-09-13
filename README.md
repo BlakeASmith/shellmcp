@@ -3,7 +3,179 @@ Expose Shell Commands as MCP tools
 
 ## YML Configuration Format
 
-The `shellmcp` tool uses YAML configuration files to define MCP servers and their tools. Here's the complete specification:
+The `shellmcp` tool uses YAML configuration files to define MCP servers and their tools.
+
+### Formal Specification
+
+#### Schema Definition
+
+```yaml
+# Root document structure
+type: object
+properties:
+  server:
+    type: object
+    required: [name, desc]
+    properties:
+      name:
+        type: string
+        description: "Name of the MCP server"
+      desc:
+        type: string
+        description: "Description of the server"
+      version:
+        type: string
+        description: "Server version"
+        default: "1.0.0"
+      env:
+        type: object
+        description: "Environment variables"
+        additionalProperties:
+          type: string
+  
+  args:
+    type: object
+    description: "Reusable argument definitions"
+    additionalProperties:
+      type: object
+      required: [help]
+      properties:
+        help:
+          type: string
+          description: "Argument description"
+        type:
+          type: string
+          enum: [string, number, boolean, array]
+          default: string
+        default:
+          description: "Default value (makes argument optional)"
+        choices:
+          type: array
+          description: "Allowed values for validation"
+        pattern:
+          type: string
+          description: "Regex pattern for validation"
+  
+  tools:
+    type: object
+    description: "Tool definitions"
+    additionalProperties:
+      type: object
+      required: [cmd, desc]
+      properties:
+        cmd:
+          type: string
+          description: "Shell command to execute (supports Jinja2 templates)"
+        desc:
+          type: string
+          description: "Tool description"
+        help-cmd:
+          type: string
+          description: "Command to get help text"
+        args:
+          type: array
+          description: "Argument definitions"
+          items:
+            type: object
+            required: [name, help]
+            properties:
+              name:
+                type: string
+                description: "Argument name"
+              help:
+                type: string
+                description: "Argument description"
+              type:
+                type: string
+                enum: [string, number, boolean, array]
+                default: string
+              default:
+                description: "Default value (makes argument optional)"
+              choices:
+                type: array
+                description: "Allowed values"
+              pattern:
+                type: string
+                description: "Regex validation pattern"
+              ref:
+                type: string
+                description: "Reference to reusable argument definition"
+        env:
+          type: object
+          description: "Tool-specific environment variables"
+          additionalProperties:
+            type: string
+```
+
+#### Jinja2 Template Context
+
+The `cmd` field supports Jinja2 templating with the following context variables:
+
+```python
+# Template context structure
+{
+    # Argument values (from args definition)
+    "arg_name": "argument_value",
+    
+    # Environment variables (from server.env and tool.env)
+    "ENV_VAR": "value",
+    
+    # Built-in functions
+    "now": datetime_function,  # Current timestamp
+    
+    # Built-in filters
+    # Standard Jinja2 filters: upper, lower, replace, etc.
+}
+```
+
+#### Validation Rules
+
+1. **Argument Requirements**: Arguments are required unless they have a `default` value
+2. **Reference Resolution**: `ref` must reference a valid argument definition in the `args` section
+3. **Template Syntax**: `cmd` field must contain valid Jinja2 template syntax
+4. **Unique Names**: Tool names and argument names must be unique within their scope
+5. **Type Coercion**: Argument values are coerced to their specified type
+
+#### Example Validation
+
+```yaml
+# Valid configuration
+server:
+  name: "my-server"
+  desc: "My MCP server"
+
+tools:
+  MyTool:
+    cmd: "echo {{ message }}"
+    desc: "Echo a message"
+    args:
+      - name: message
+        help: "Message to echo"
+        default: "Hello World"
+
+# Invalid configurations
+# ❌ Missing required fields
+server:
+  name: "my-server"
+  # Missing 'desc'
+
+# ❌ Invalid reference
+tools:
+  MyTool:
+    cmd: "echo {{ message }}"
+    desc: "Echo a message"
+    args:
+      - name: message
+        ref: "NonExistentArg"  # Reference doesn't exist
+
+# ❌ Invalid Jinja2 syntax
+tools:
+  MyTool:
+    cmd: "echo {{ message"  # Unclosed template
+    desc: "Echo a message"
+```
+
+Here's the complete specification:
 
 ### Server Configuration
 
