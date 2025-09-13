@@ -1,0 +1,13 @@
+server:
+  name: example-server
+  desc: Example MCP server
+
+tools:
+  Hello:
+    cmd: echo "Hello {{ name }}"
+    desc: Say hello
+    args:
+      - name: name
+        help: Name to greet
+        type: string
+        default: "World"
