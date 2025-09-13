@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Example script demonstrating the template-based FastMCP server generator with MCP configuration."""
+"""Example script demonstrating the template-based FastMCP server generator."""
 
 import sys
 from pathlib import Path
@@ -27,29 +27,21 @@ def main():
         print("\n📋 Generated files:")
         print("   - filesystem_mcp_server.py (FastMCP server)")
         print("   - requirements.txt (Python dependencies)")
-        print("   - README.md (Documentation with Amazon Q CLI instructions)")
-        print("   - amazon-q-config.json (Amazon Q CLI configuration)")
+        print("   - README.md (Documentation)")
         
         print("\n🚀 Key improvements with template-based generation:")
         print("   ✨ Clean, maintainable Jinja2 templates")
         print("   ✨ Custom filters for type conversion")
-        print("   ✨ Automatic Amazon Q CLI configuration generation")
         print("   ✨ Virtual environment best practices")
         print("   ✨ Better code formatting and structure")
-        
-        print("\n🔧 Amazon Q CLI Integration Features:")
-        print("   ☁️  AWS-native AI assistance")
-        print("   🔐 Enterprise-grade security and compliance")
-        print("   🚀 Enhanced productivity with AWS context")
-        print("   🔗 Multi-service integration with AWS tools")
-        print("   📊 Advanced analytics and insights")
+        print("   ✨ Comprehensive error handling")
         
         print("\n💡 Next steps:")
-        print("   1. Review the generated amazon-q-config.json file")
-        print("   2. Install Amazon Q CLI")
-        print("   3. Configure AWS credentials")
-        print("   4. Copy the configuration to Amazon Q CLI")
-        print("   5. Start Amazon Q CLI and test your tools!")
+        print("   1. Set up virtual environment: python3 -m venv venv")
+        print("   2. Activate virtual environment: source venv/bin/activate")
+        print("   3. Install dependencies: pip install -r requirements.txt")
+        print("   4. Run the server: python filesystem_mcp_server.py")
+        print("   5. Connect with your preferred MCP client!")
         
     else:
         print(f"\n❌ Server generation failed with exit code {exit_code}")

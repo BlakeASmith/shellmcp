@@ -53,33 +53,6 @@ pip install -r requirements.txt
 python {{ config.server.name.replace('-', '_') }}_server.py
 ```
 
-## Amazon Q CLI Configuration
-
-The generated `amazon-q-config.json` file contains the configuration needed to integrate this server with Amazon Q CLI for enhanced AI assistance.
-
-### Quick Setup
-
-1. **Install Amazon Q CLI**: `curl -sSL https://amazon-q-cli.s3.amazonaws.com/install.sh | bash`
-2. **Configure AWS credentials**: `aws configure` or `aws sso login`
-3. **Copy Amazon Q configuration** from the generated `amazon-q-config.json` file
-4. **Add to Amazon Q CLI configuration**:
-   - **Linux/macOS**: `~/.config/amazon-q/cli-config.json`
-   - **Windows**: `%APPDATA%\Amazon\Q\cli-config.json`
-5. **Start Amazon Q CLI**: `amazon-q`
-6. **Use `@tools` command** to access your MCP tools
-
-### Configuration Parameters
-
-- **`command`**: Python interpreter command (uses virtual environment path)
-- **`args`**: Server script path and arguments
-- **`cwd`**: Working directory for the server
-- **`env`**: Environment variables (PYTHONPATH, AWS_PROFILE, etc.)
-
-### Testing Your Configuration
-
-1. **Manual test**: Run the server directly to ensure it starts
-2. **Check Amazon Q CLI**: Use `@tools` command to see available tools
-3. **Test commands**: Try using the generated tools through Amazon Q CLI
 
 ## Tools
 

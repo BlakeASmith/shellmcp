@@ -8,7 +8,6 @@ The generator takes a YAML configuration file and produces:
 - A complete FastMCP server implementation
 - Requirements file with all necessary dependencies
 - Comprehensive documentation
-- Amazon Q CLI configuration for AWS integration
 - Ready-to-run server code
 
 ## Features
@@ -20,6 +19,7 @@ The generator takes a YAML configuration file and produces:
 - **Error Handling**: Built-in timeout protection and error handling
 - **Type Safety**: Proper Python type annotations for all arguments
 - **Custom Filters**: Built-in Jinja2 filters for Python type conversion and formatting
+- **Virtual Environment Support**: Proper dependency isolation and management
 
 ## Usage
 
@@ -220,7 +220,7 @@ The generator uses a sophisticated Jinja2 template system for code generation:
 
 - **`server.py.j2`**: Main server template with all tool functions
 - **`requirements.txt.j2`**: Python dependencies template
-- **`README.md.j2`**: Documentation template
+- **`README.md.j2`**: Documentation template with virtual environment instructions
 
 ### Custom Jinja2 Filters
 
@@ -349,139 +349,6 @@ if __name__ == "__main__":
 
 3. **Connect with MCP Client**:
    The server runs on STDIO transport and can be connected to by any MCP-compatible client.
-
-
-### Amazon Q CLI
-
-Amazon Q CLI supports MCP servers for enhanced AI assistance. Here's how to configure your FastMCP server:
-
-#### Prerequisites
-
-1. **Install Amazon Q CLI**:
-   ```bash
-   # Download and install Amazon Q CLI
-   curl -sSL https://amazon-q-cli.s3.amazonaws.com/install.sh | bash
-   ```
-
-2. **Authenticate with AWS**:
-   ```bash
-   aws configure
-   # or use AWS SSO
-   aws sso login
-   ```
-
-#### Configuration
-
-1. **Locate Amazon Q CLI configuration file**:
-   ```bash
-   # Linux/macOS
-   ~/.config/amazon-q/cli-config.json
-   
-   # Windows
-   %APPDATA%\Amazon\Q\cli-config.json
-   ```
-
-2. **Add MCP server configuration**:
-   ```json
-   {
-     "mcpServers": {
-       "{{ config.server.name }}": {
-         "command": "/path/to/your/venv/bin/python",
-         "args": ["/path/to/your/filesystem_mcp_server.py"],
-         "cwd": "/path/to/your/server/directory",
-         "env": {
-           "PYTHONPATH": "/path/to/your/server/directory",
-           "AWS_PROFILE": "default"
-         }
-       }
-     }
-   }
-   ```
-
-3. **Restart Amazon Q CLI**:
-   ```bash
-   # Kill any running Amazon Q processes
-   pkill -f amazon-q
-   
-   # Start Amazon Q CLI
-   amazon-q
-   ```
-
-#### Using with Amazon Q
-
-1. **Start Amazon Q CLI**:
-   ```bash
-   amazon-q
-   ```
-
-2. **Access MCP tools**:
-   - Use the `@tools` command to see available MCP tools
-   - Reference your tools directly in conversations
-   - Example: "Use the listfiles tool to show the contents of the current directory"
-
-3. **Integration features**:
-   - **Context awareness**: Amazon Q can use your tools with project context
-   - **Multi-tool workflows**: Chain multiple tools together for complex tasks
-   - **AWS integration**: Tools work alongside AWS services and resources
-
-#### Amazon Q CLI Examples
-
-```bash
-# Start Amazon Q CLI
-amazon-q
-
-# Use your MCP tools
-@tools listfiles --path /home/user/projects
-
-# Chain multiple tools
-@tools createdirectory --path /tmp/backup && @tools backupdatabase --user admin --password secret --database myapp
-
-# Use with AWS context
-@tools dockercontainer --action logs --container my-app-container
-```
-
-#### Benefits of Amazon Q CLI Integration
-
-- **AWS-Native**: Seamless integration with AWS services and resources
-- **Context Awareness**: Amazon Q understands your AWS environment and can provide relevant suggestions
-- **Enhanced Productivity**: Combine your custom MCP tools with AWS best practices and recommendations
-- **Enterprise Features**: Access to enterprise-grade AI assistance with AWS security and compliance
-- **Multi-Service Integration**: Use your tools alongside AWS CLI, SDKs, and other AWS tools
-
-#### Use Cases
-
-- **DevOps Automation**: Use filesystem tools for deployment scripts alongside AWS infrastructure
-- **Database Management**: Combine database backup tools with AWS RDS and DynamoDB operations
-- **Container Orchestration**: Use Docker tools with AWS ECS, EKS, and Lambda deployments
-- **File Management**: Organize and manage files across AWS S3, EFS, and local filesystems
-- **Development Workflows**: Integrate development tools with AWS CodeCommit, CodeBuild, and CodeDeploy
-
-#### Troubleshooting Amazon Q CLI
-
-1. **Check MCP server status**:
-   ```bash
-   amazon-q --list-mcp-servers
-   ```
-
-2. **Test MCP connection**:
-   ```bash
-   amazon-q --test-mcp-server filesystem-mcp
-   ```
-
-3. **View logs**:
-   ```bash
-   # Amazon Q CLI logs
-   tail -f ~/.config/amazon-q/cli.log
-   
-   # Your MCP server logs (if logging is enabled)
-   tail -f /path/to/your/server/mcp.log
-   ```
-
-4. **Common issues**:
-   - **Authentication**: Ensure AWS credentials are properly configured
-   - **Permissions**: Check IAM permissions for Amazon Q service
-   - **Network**: Verify network connectivity to AWS services
-   - **MCP server**: Ensure your FastMCP server starts without errors
 
 
 

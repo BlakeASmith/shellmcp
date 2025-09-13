@@ -87,16 +87,3 @@ class FastMCPGenerator:
         return output_file
     
     
-    def generate_amazon_q_config(self, config: YMLConfig, output_file: str, server_script_path: str, server_directory: str) -> str:
-        """Generate Amazon Q CLI configuration file for the FastMCP server."""
-        template = self.jinja_env.get_template('amazon-q-config.json.j2')
-        amazon_q_config = template.render(
-            config=config,
-            server_script_path=server_script_path,
-            server_directory=server_directory
-        )
-        
-        with open(output_file, 'w', encoding='utf-8') as f:
-            f.write(amazon_q_config)
-        
-        return output_file
