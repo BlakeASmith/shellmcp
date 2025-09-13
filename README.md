@@ -12,8 +12,6 @@ server:
   name: string          # Required: Name of the MCP server
   desc: string          # Required: Description of the server
   version: string       # Optional: Server version (default: "1.0.0")
-  author: string        # Optional: Author information
-  license: string       # Optional: License information
   env:                  # Optional: Environment variables
     VAR_NAME: value
   working_dir: string   # Optional: Working directory for commands
