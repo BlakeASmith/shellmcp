@@ -31,7 +31,7 @@ args:
 ```yml
 tools:
   ToolName:             # Required: Tool identifier (must be unique)
-    cmd: string         # Required: Shell command to execute
+    cmd: string         # Required: Shell command to execute (supports Jinja2 templates)
     desc: string        # Required: Tool description
     help-cmd: string    # Optional: Command to get help text
     args:               # Optional: Argument definitions
@@ -246,6 +246,176 @@ tools:
   StopServices:
     cmd: docker-compose down
     desc: Stop all Docker services
+```
+
+### Jinja2 Template Support
+
+Commands support Jinja2 templating for advanced command generation:
+
+#### Basic Template Syntax
+```yml
+tools:
+  ConditionalCommand:
+    cmd: |
+      {% if env == 'prod' %}
+      docker run --restart=always -d $IMAGE
+      {% else %}
+      docker run -d $IMAGE
+      {% endif %}
+    desc: Run Docker container with environment-specific options
+    args:
+      - name: env
+        help: Environment
+        choices: ["dev", "staging", "prod"]
+      - name: IMAGE
+        help: Docker image to run
+
+  LoopCommand:
+    cmd: |
+      {% for service in services %}
+      docker-compose up -d {{ service }}
+      {% endfor %}
+    desc: Start multiple services
+    args:
+      - name: services
+        help: Services to start
+        type: array
+        default: ["web", "db", "redis"]
+
+  ComplexTemplate:
+    cmd: |
+      {% set backup_file = "backup_" + timestamp + ".sql" %}
+      mysqldump -h {{ host }} -u {{ user }} -p{{ password }} {{ database }} > {{ backup_file }}
+      {% if compress %}
+      gzip {{ backup_file }}
+      {% endif %}
+    desc: Database backup with optional compression
+    args:
+      - name: host
+        help: Database host
+        default: "localhost"
+      - name: user
+        help: Database user
+      - name: password
+        help: Database password
+      - name: database
+        help: Database name
+      - name: compress
+        help: Compress backup
+        type: boolean
+        default: false
+      - name: timestamp
+        help: Timestamp for backup file
+        default: "{{ now().strftime('%Y%m%d_%H%M%S') }}"
+```
+
+#### Template Variables and Filters
+```yml
+tools:
+  FileProcessor:
+    cmd: |
+      {% set input_file = input_path | basename %}
+      {% set output_file = input_file | replace('.txt', '.processed.txt') %}
+      python process.py --input "{{ input_path }}" --output "{{ output_dir }}/{{ output_file }}"
+    desc: Process files with dynamic naming
+    args:
+      - name: input_path
+        help: Input file path
+      - name: output_dir
+        help: Output directory
+        default: "./output"
+
+  ConditionalBuild:
+    cmd: |
+      {% if debug %}
+      make debug
+      {% elif release %}
+      make release
+      {% else %}
+      make all
+      {% endif %}
+    desc: Build with conditional options
+    args:
+      - name: debug
+        help: Build debug version
+        type: boolean
+        default: false
+      - name: release
+        help: Build release version
+        type: boolean
+        default: false
+```
+
+#### Advanced Template Features
+```yml
+tools:
+  MultiStepDeploy:
+    cmd: |
+      {% set version = version or 'latest' %}
+      {% set tag = project + ':' + version %}
+      
+      # Build image
+      docker build -t {{ tag }} .
+      
+      # Push to registry
+      {% if registry %}
+      docker tag {{ tag }} {{ registry }}/{{ tag }}
+      docker push {{ registry }}/{{ tag }}
+      {% endif %}
+      
+      # Deploy
+      {% if env == 'prod' %}
+      kubectl set image deployment/{{ project }} {{ project }}={{ registry }}/{{ tag }}
+      {% else %}
+      docker-compose up -d
+      {% endif %}
+    desc: Complete deployment pipeline
+    args:
+      - name: project
+        help: Project name
+      - name: version
+        help: Version to deploy
+        default: "latest"
+      - name: registry
+        help: Docker registry URL
+        required: false
+      - name: env
+        help: Environment
+        choices: ["dev", "staging", "prod"]
+        default: "dev"
+```
+
+#### Template Functions and Filters
+```yml
+tools:
+  DataProcessor:
+    cmd: |
+      {% set safe_name = name | replace(' ', '_') | lower %}
+      {% set timestamp = now().strftime('%Y%m%d_%H%M%S') %}
+      {% set output_file = safe_name + '_' + timestamp + '.json' %}
+      
+      python process.py \
+        --input "{{ input_file }}" \
+        --output "{{ output_dir }}/{{ output_file }}" \
+        {% if format == 'csv' %}--csv{% endif %} \
+        {% if verbose %}--verbose{% endif %}
+    desc: Process data with dynamic file naming
+    args:
+      - name: name
+        help: Process name
+      - name: input_file
+        help: Input file path
+      - name: output_dir
+        help: Output directory
+        default: "./output"
+      - name: format
+        help: Output format
+        choices: ["json", "csv"]
+        default: "json"
+      - name: verbose
+        help: Verbose output
+        type: boolean
+        default: false
 ```
 
 ### Variable Substitution
