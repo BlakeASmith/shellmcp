@@ -53,19 +53,6 @@ server:
   name: filesystem-mcp
   desc: MCP Server for filesystem operations
 
-# Reusable argument definitions
-args:
-  FilePath:
-    help: Path to a file or directory
-    pattern: "^[^\\0]+$"
-
-  SearchPattern:
-    help: Pattern to search for (supports wildcards and regex)
-
-  OptionalPath:
-    help: Optional directory path
-    default: "."
-
 tools:
   ListFiles:
     cmd: ls -la $@
@@ -73,66 +60,8 @@ tools:
     help-cmd: ls --help
     args:
       - name: path
-        ref: OptionalPath
-
-  FindFiles:
-    cmd: find $PATH -name "$PATTERN" -type f
-    desc: Find files matching a pattern
-    args:
-      - name: PATH
-        ref: FilePath
-      - name: PATTERN
-        ref: SearchPattern
-
-  GrepFiles:
-    cmd: grep -r "$PATTERN" "$PATH"
-    desc: Search for patterns in files recursively
-    args:
-      - name: PATH
-        ref: FilePath
-      - name: PATTERN
-        ref: SearchPattern
-
-  GitStatus:
-    cmd: git status --porcelain
-    desc: Get git repository status
-
-  SimpleEcho:
-    cmd: echo "Hello $NAME"
-    desc: Simple echo command
-    args:
-      - name: NAME
-        help: Name to greet
-        default: "World"
-
-  LocalScript:
-    cmd: ./scripts/deploy.sh $ENV $VERSION
-    desc: Run local deployment script
-    args:
-      - name: ENV
-        help: Environment to deploy to
-        choices: ["dev", "staging", "prod"]
-      - name: VERSION
-        help: Version to deploy
-        default: "latest"
-
-  PythonScript:
-    cmd: python scripts/analyze.py --input "$INPUT" --output "$OUTPUT"
-    desc: Run Python analysis script
-    args:
-      - name: INPUT
-        help: Input file path
-      - name: OUTPUT
-        help: Output file path
-        default: "results.json"
-
-  MakeCommand:
-    cmd: make $TARGET
-    desc: Run make target
-    args:
-      - name: TARGET
-        help: Make target to run
-        choices: ["build", "test", "clean", "install"]
+        help: Directory path to list
+        default: "."
 ```
 
 ### Local Script Example
