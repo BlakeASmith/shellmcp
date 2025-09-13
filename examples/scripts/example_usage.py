@@ -8,7 +8,7 @@ def main():
     
     try:
         # Load the example configuration
-        config = parser.load_from_file("example_config.yml")
+        config = parser.load_from_file("examples/configs/example_config.yml")
         print("✅ Configuration loaded successfully!")
         
         # Display server information
