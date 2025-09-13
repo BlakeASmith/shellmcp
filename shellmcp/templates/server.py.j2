@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 import shlex
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from fastmcp import FastMCP
 from jinja2 import Template, Environment
 
@@ -152,7 +152,7 @@ def {{ func_name }}({{ param_str }}) -> Dict[str, Any]:
 {% endfor %}
 {% set param_str = (params_without_defaults + params_with_defaults)|join(", ") %}
 
-@mcp.resource("{{ resource.uri }}")
+@mcp.resource("{{ resource.uri|replace('{{ ', '{')|replace(' }}', '}')|replace('{{', '{')|replace('}}', '}') }}")
 def {{ func_name }}({{ param_str }}) -> str:
     """
     {{ resource.description or resource.name }}
