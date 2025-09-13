@@ -10,8 +10,14 @@ LSP server providing autocomplete for shellmcp YAML configuration files.
 
 ## Installation
 
+### Basic Installation
 ```bash
 pip install shellmcp
+```
+
+### With LSP Support
+```bash
+pip install shellmcp[lsp]
 ```
 
 ## Usage
@@ -22,17 +28,14 @@ pip install shellmcp
 shellmcp lsp
 ```
 
+**Note**: If you get an import error, make sure you installed with LSP support:
+```bash
+pip install shellmcp[lsp]
+```
+
 ### VS Code Configuration
 
-Add to your VS Code settings:
-
-```json
-{
-  "yaml.schemas": {
-    "file:///path/to/shellmcp/lsp/schema.json": ["*.yml", "*.yaml"]
-  }
-}
-```
+The LSP server provides autocomplete without requiring schema configuration, but you can still add YAML schema support if desired.
 
 ## Autocomplete Features
 

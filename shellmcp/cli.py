@@ -167,6 +167,9 @@ def lsp(log_level: str = "INFO") -> int:
         
         return 0
         
+    except ImportError as e:
+        print(f"❌ LSP dependencies not installed. Install with: pip install shellmcp[lsp]", file=sys.stderr)
+        return 1
     except Exception as e:
         print(f"❌ Error starting LSP server: {e}", file=sys.stderr)
         return 1
