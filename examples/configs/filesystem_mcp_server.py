@@ -85,7 +85,7 @@ def listfiles(path: str) -> Dict[str, Any]:
             raise ValueError(f"Invalid path: must match pattern ^[^\0]+$")
         
         # Render command template
-        cmd = render_template("""ls -la {{ path }}""", path)
+        cmd = render_template("""ls -la {{ path }}""", path=path)
         
         # Execute command
         env_vars = {}
@@ -113,7 +113,7 @@ def readfile(file: str) -> Dict[str, Any]:
             raise ValueError(f"Invalid file: must match pattern ^[^\0]+$")
         
         # Render command template
-        cmd = render_template("""cat {{ file }}""", file)
+        cmd = render_template("""cat {{ file }}""", file=file)
         
         # Execute command
         env_vars = {}
@@ -141,7 +141,7 @@ def createdirectory(path: str) -> Dict[str, Any]:
             raise ValueError(f"Invalid path: must match pattern ^[^\0]+$")
         
         # Render command template
-        cmd = render_template("""mkdir -p {{ path }}""", path)
+        cmd = render_template("""mkdir -p {{ path }}""", path=path)
         
         # Execute command
         env_vars = {}
@@ -171,7 +171,7 @@ mysqldump -h {{ host }} -u {{ user }} -p{{ password }} {{ database }} > {{ backu
 gzip {{ backup_file }}
 {% endif %}
 echo \"Backup completed: {{ backup_file }}\"
-""", host, user, password, database, compress, timestamp)
+""", host=host, user=user, password=password, database=database, compress=compress, timestamp=timestamp)
         
         # Execute command
         env_vars = {}
@@ -207,7 +207,7 @@ docker restart {{ container }}
 {% else %}
 docker {{ action }} {{ container }}
 {% endif %}
-""", action, container)
+""", action=action, container=container)
         
         # Execute command
         env_vars = {}
@@ -241,7 +241,7 @@ docker run -d --name {{ service }}_staging {{ image }}
 {% else %}
 docker run -d --name {{ service }}_dev {{ image }}
 {% endif %}
-""", env, service, image)
+""", env=env, service=service, image=image)
         
         # Execute command
         env_vars = {}

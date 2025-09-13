@@ -112,7 +112,7 @@ def {{ func_name }}({{ param_str }}) -> Dict[str, Any]:
 {% endfor %}
         
         # Render command template
-        cmd = render_template("""{{ tool.cmd|escape_double_quotes }}""", {{ resolved_args|map(attribute='name')|join(', ') }})
+        cmd = render_template("""{{ tool.cmd|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
         
         # Execute command
         env_vars = {}
