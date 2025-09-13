@@ -173,43 +173,6 @@ tools:
         choices: ["json", "csv", "xml"]
         default: "json"
 
-  ReportGenerator:
-    cmd: python -m reports.generate --template "$TEMPLATE" --output "$OUTPUT"
-    desc: Generate reports
-    args:
-      - name: TEMPLATE
-        help: Report template name
-      - name: OUTPUT
-        help: Output file path
-```
-
-#### Node.js Scripts
-```yml
-tools:
-  BuildAssets:
-    cmd: node scripts/build.js --env $ENV --minify $MINIFY
-    desc: Build frontend assets
-    args:
-      - name: ENV
-        help: Build environment
-        choices: ["development", "production"]
-      - name: MINIFY
-        help: Minify output
-        type: boolean
-        default: false
-
-  TestRunner:
-    cmd: npm run test -- --grep "$PATTERN"
-    desc: Run tests with pattern
-    args:
-      - name: PATTERN
-        help: Test pattern to match
-        default: ".*"
-```
-
-#### Make/CMake Commands
-```yml
-tools:
   BuildProject:
     cmd: make $TARGET
     desc: Build project using Make
@@ -218,31 +181,6 @@ tools:
         help: Make target
         choices: ["all", "debug", "release", "clean"]
         default: "all"
-
-  CMakeBuild:
-    cmd: cmake --build build --config $CONFIG
-    desc: Build using CMake
-    args:
-      - name: CONFIG
-        help: Build configuration
-        choices: ["Debug", "Release", "RelWithDebInfo"]
-        default: "Release"
-```
-
-#### Docker Compose
-```yml
-tools:
-  StartServices:
-    cmd: docker-compose up -d $SERVICES
-    desc: Start Docker services
-    args:
-      - name: SERVICES
-        help: Services to start (space-separated)
-        default: ""
-
-  StopServices:
-    cmd: docker-compose down
-    desc: Stop all Docker services
 ```
 
 ### Jinja2 Template Support
