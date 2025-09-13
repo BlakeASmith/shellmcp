@@ -34,15 +34,6 @@ tools:
         pattern: string # Optional: Regex pattern for validation
     env:                # Optional: Tool-specific environment variables
       VAR_NAME: value
-    working_dir: string # Optional: Tool-specific working directory
-    timeout: integer    # Optional: Tool-specific timeout
-    output:             # Optional: Output processing
-      format: string    # Optional: Output format (text, json, yaml, xml)
-      filter: string    # Optional: Command to filter/transform output
-    security:           # Optional: Security constraints
-      allow_stdin: bool # Optional: Allow stdin input (default: false)
-      max_args: int     # Optional: Maximum number of arguments
-      allowed_dirs: []  # Optional: Restrict to specific directories
 ```
 
 ### Example Configuration
@@ -76,15 +67,10 @@ tools:
         type: string
         required: true
         help: File pattern to match
-    security:
-      allowed_dirs: ["/home", "/tmp", "/workspace"]
 
   GitStatus:
     cmd: git status --porcelain
     desc: Get git repository status
-    working_dir: $GIT_ROOT
-    output:
-      format: text
 ```
 
 ### Variable Substitution
