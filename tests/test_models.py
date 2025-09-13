@@ -56,16 +56,17 @@ class TestToolArgument:
         assert arg.type == "boolean"
         assert arg.default is True
     
-    def test_ref_exclusive_validation(self):
-        """Test that ref cannot be used with other properties."""
-        with pytest.raises(ValidationError) as exc_info:
-            ToolArgument(
-                name="test_arg",
-                help="Test argument",
-                ref="SomeRef",
-                type="string"
-            )
-        assert "Cannot use 'ref' with 'type'" in str(exc_info.value)
+    def test_ref_with_other_properties(self):
+        """Test that ref can be used with other properties (validation removed)."""
+        # This should work now since we removed the validation
+        arg = ToolArgument(
+            name="test_arg",
+            help="Test argument",
+            ref="SomeRef",
+            type="string"
+        )
+        assert arg.ref == "SomeRef"
+        assert arg.type == "string"
     
     def test_valid_ref_only(self):
         """Test that ref can be used alone."""
@@ -158,16 +159,19 @@ class TestYMLConfig:
         assert "TestTool" in config.tools
     
     def test_duplicate_tool_names(self):
-        """Test validation of duplicate tool names."""
-        # This should be handled by dict keys, but let's test the validation
-        with pytest.raises(ValidationError):
-            YMLConfig(
-                server=ServerConfig(name="test", desc="Test server"),
-                tools={
-                    "TestTool": ToolConfig(cmd="echo 1", desc="Tool 1"),
-                    "TestTool": ToolConfig(cmd="echo 2", desc="Tool 2")  # Duplicate key
-                }
-            )
+        """Test that duplicate tool names are handled by dict keys."""
+        # Python dicts automatically handle duplicate keys by keeping the last one
+        tools_dict = {
+            "TestTool": ToolConfig(cmd="echo 1", desc="Tool 1"),
+            "TestTool": ToolConfig(cmd="echo 2", desc="Tool 2")  # This overwrites the first
+        }
+        config = YMLConfig(
+            server=ServerConfig(name="test", desc="Test server"),
+            tools=tools_dict
+        )
+        # Should have only one tool with the last definition
+        assert len(config.tools) == 1
+        assert config.tools["TestTool"].desc == "Tool 2"
     
     def test_duplicate_argument_names_in_tool(self):
         """Test validation of duplicate argument names within a tool."""

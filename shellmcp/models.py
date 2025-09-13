@@ -174,17 +174,15 @@ class YMLConfig(BaseModel):
             return []
         
         try:
-            from jinja2 import Template
+            from jinja2 import Template, meta
             template_str = self.tools[tool_name].cmd
             template = Template(template_str)
             
             # Get all variables used in the template
-            variables = []
-            for node in template.parse():
-                if hasattr(node, 'name'):
-                    variables.append(node.name)
+            ast = template.environment.parse(template_str)
+            variables = meta.find_undeclared_variables(ast)
             
-            return list(set(variables))
+            return list(variables)
         except Exception:
             return []
     
