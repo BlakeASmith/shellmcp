@@ -1,0 +1,12 @@
+This is a custom prompt template.
+
+You can use this template to create personalized prompts for your specific use case.
+
+## Template Variables
+- {{ prompt_name }}: The name of the prompt
+- Any other variables you define in your YAML configuration
+
+## Usage
+This prompt can be customized by passing different parameters when calling it.
+
+Feel free to modify this template to suit your needs!

@@ -380,17 +380,17 @@ class YMLConfig(BaseModel):
             return []
     
     def get_resource_template_variables(self, resource_name: str) -> List[str]:
-        """Extract template variables from a resource's command."""
+        """Extract template variables from a resource's command or file."""
         if not self.resources or resource_name not in self.resources:
             return []
         
         resource = self.resources[resource_name]
-        if not resource.cmd:
-            return []  # File-based resources don't have template variables
+        template_str = resource.cmd or resource.file
+        if not template_str:
+            return []
         
         try:
             from jinja2 import Template, meta
-            template_str = resource.cmd
             template = Template(template_str)
             
             # Get all variables used in the template
@@ -402,17 +402,17 @@ class YMLConfig(BaseModel):
             return []
     
     def get_prompt_template_variables(self, prompt_name: str) -> List[str]:
-        """Extract template variables from a prompt's command."""
+        """Extract template variables from a prompt's command or file."""
         if not self.prompts or prompt_name not in self.prompts:
             return []
         
         prompt = self.prompts[prompt_name]
-        if not prompt.cmd:
-            return []  # File-based prompts don't have template variables
+        template_str = prompt.cmd or prompt.file
+        if not template_str:
+            return []
         
         try:
             from jinja2 import Template, meta
-            template_str = prompt.cmd
             template = Template(template_str)
             
             # Get all variables used in the template
