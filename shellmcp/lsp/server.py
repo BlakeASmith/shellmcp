@@ -72,6 +72,47 @@ COMPLETIONS = {
     "null": "YAML null",
 }
 
+# Completion kind mapping
+COMPLETION_KINDS = {
+    # Root level keys
+    "server": CompletionItemKind.Module,
+    "tools": CompletionItemKind.Module,
+    "resources": CompletionItemKind.Module,
+    "prompts": CompletionItemKind.Module,
+    "args": CompletionItemKind.Module,
+    
+    # Properties
+    "name": CompletionItemKind.Property,
+    "desc": CompletionItemKind.Property,
+    "version": CompletionItemKind.Property,
+    "env": CompletionItemKind.Property,
+    "cmd": CompletionItemKind.Property,
+    "help-cmd": CompletionItemKind.Property,
+    "args": CompletionItemKind.Property,
+    "uri": CompletionItemKind.Property,
+    "mime_type": CompletionItemKind.Property,
+    "file": CompletionItemKind.Property,
+    "text": CompletionItemKind.Property,
+    "template": CompletionItemKind.Property,
+    "help": CompletionItemKind.Property,
+    "type": CompletionItemKind.Property,
+    "default": CompletionItemKind.Property,
+    "choices": CompletionItemKind.Property,
+    "pattern": CompletionItemKind.Property,
+    "ref": CompletionItemKind.Property,
+    
+    # Types
+    "string": CompletionItemKind.EnumMember,
+    "number": CompletionItemKind.EnumMember,
+    "boolean": CompletionItemKind.EnumMember,
+    "array": CompletionItemKind.EnumMember,
+    
+    # YAML keywords
+    "true": CompletionItemKind.Keyword,
+    "false": CompletionItemKind.Keyword,
+    "null": CompletionItemKind.Keyword,
+}
+
 
 @server.feature(INITIALIZE)
 def initialize(params: InitializeParams):
@@ -94,15 +135,8 @@ def completion(params: CompletionParams) -> CompletionList:
         
         # Add all available completions
         for key, detail in COMPLETIONS.items():
-            # Determine completion kind based on key
-            if key in ["server", "tools", "resources", "prompts", "args"]:
-                kind = CompletionItemKind.Module
-            elif key in ["name", "desc", "version", "env", "cmd", "help-cmd", "args", "uri", "mime_type", "file", "text", "template", "help", "type", "default", "choices", "pattern", "ref"]:
-                kind = CompletionItemKind.Property
-            elif key in ["string", "number", "boolean", "array"]:
-                kind = CompletionItemKind.EnumMember
-            else:
-                kind = CompletionItemKind.Keyword
+            # Get completion kind from mapping
+            kind = COMPLETION_KINDS.get(key, CompletionItemKind.Keyword)
             
             completions.append(CompletionItem(
                 label=key,
