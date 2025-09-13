@@ -129,26 +129,109 @@ def initialize(params: InitializeParams):
 
 @server.feature(COMPLETION)
 def completion(params: CompletionParams) -> CompletionList:
-    """Provide simple autocomplete suggestions."""
+    """Provide context-aware autocomplete suggestions."""
     try:
-        completions = []
+        # Get the document and cursor position
+        doc = server.workspace.get_document(params.textDocument.uri)
+        line = doc.lines[params.position.line]
+        char_pos = params.position.character
         
-        # Add all available completions
-        for key, detail in COMPLETIONS.items():
-            # Get completion kind from mapping
-            kind = COMPLETION_KINDS.get(key, CompletionItemKind.Keyword)
-            
-            completions.append(CompletionItem(
-                label=key,
-                kind=kind,
-                detail=detail
-            ))
+        # Get the current line up to cursor
+        current_line = line[:char_pos]
+        
+        # Determine completion context
+        context = _get_completion_context(current_line, doc, params.position.line)
+        
+        # Get appropriate completions based on context
+        completions = _get_context_completions(context)
         
         return CompletionList(is_incomplete=False, items=completions)
         
     except Exception as e:
         logger.error(f"Error in completion: {e}")
         return CompletionList(is_incomplete=False, items=[])
+
+
+def _get_completion_context(current_line: str, doc, line_num: int) -> str:
+    """Determine the completion context based on current position."""
+    # Check if we're completing a key (before colon)
+    if ":" not in current_line or current_line.strip().endswith(":"):
+        return "key"
+    
+    # Check if we're completing a value (after colon)
+    if ":" in current_line and not current_line.strip().endswith(":"):
+        # Look at the key to determine what type of value
+        key_part = current_line.split(":")[0].strip()
+        
+        # Check for type-specific completions
+        if key_part == "type":
+            return "type_value"
+        elif key_part in ["true", "false"]:
+            return "boolean_value"
+        else:
+            return "value"
+    
+    return "general"
+
+
+def _get_context_completions(context: str) -> List[CompletionItem]:
+    """Get completions based on context."""
+    completions = []
+    
+    if context == "key":
+        # Show all possible keys
+        for key, detail in COMPLETIONS.items():
+            kind = COMPLETION_KINDS.get(key, CompletionItemKind.Keyword)
+            completions.append(CompletionItem(
+                label=key,
+                kind=kind,
+                detail=detail
+            ))
+    
+    elif context == "type_value":
+        # Show only type values
+        type_completions = ["string", "number", "boolean", "array"]
+        for key in type_completions:
+            if key in COMPLETIONS:
+                completions.append(CompletionItem(
+                    label=key,
+                    kind=CompletionItemKind.EnumMember,
+                    detail=COMPLETIONS[key]
+                ))
+    
+    elif context == "boolean_value":
+        # Show boolean values
+        boolean_completions = ["true", "false"]
+        for key in boolean_completions:
+            if key in COMPLETIONS:
+                completions.append(CompletionItem(
+                    label=key,
+                    kind=CompletionItemKind.Keyword,
+                    detail=COMPLETIONS[key]
+                ))
+    
+    elif context == "value":
+        # Show YAML keywords and common values
+        value_completions = ["true", "false", "null"]
+        for key in value_completions:
+            if key in COMPLETIONS:
+                completions.append(CompletionItem(
+                    label=key,
+                    kind=CompletionItemKind.Keyword,
+                    detail=COMPLETIONS[key]
+                ))
+    
+    else:
+        # Default: show all completions
+        for key, detail in COMPLETIONS.items():
+            kind = COMPLETION_KINDS.get(key, CompletionItemKind.Keyword)
+            completions.append(CompletionItem(
+                label=key,
+                kind=kind,
+                detail=detail
+            ))
+    
+    return completions
 
 
 def create_server() -> LanguageServer:
