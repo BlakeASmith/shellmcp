@@ -22,6 +22,6 @@ USER cursor
 WORKDIR /home/cursor
 
 # Install Python dependencies
-RUN pip3 install --user -r pytest
+RUN pip3 install --user pytest
 
 CMD ["bash"]
