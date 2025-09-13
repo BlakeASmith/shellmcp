@@ -18,12 +18,12 @@ server:
 # Optional: Reusable argument definitions
 args:
   ArgName:              # Argument definition name
-    type: string        # Argument type (string, number, boolean, array)
-    required: bool      # Whether argument is required (default: true)
-    help: string        # Argument description
-    default: any        # Default value
-    choices: []         # Allowed values for validation
-    pattern: string     # Regex pattern for validation
+    help: string        # Required: Argument description
+    type: string        # Optional: string|number|boolean|array (default: string)
+    required: bool      # Optional: Whether required (default: true)
+    default: any        # Optional: Default value
+    choices: []         # Optional: Allowed values
+    pattern: string     # Optional: Regex validation
 ```
 
 ### Tool Configuration
@@ -36,12 +36,12 @@ tools:
     help-cmd: string    # Optional: Command to get help text
     args:               # Optional: Argument definitions
       - name: string    # Required: Argument name
-        type: string    # Optional: Argument type (string, number, boolean, array)
-        required: bool  # Optional: Whether argument is required (default: true)
-        help: string    # Optional: Argument description
+        help: string    # Required: Argument description
+        type: string    # Optional: string|number|boolean|array (default: string)
+        required: bool  # Optional: Whether required (default: true)
         default: any    # Optional: Default value
-        choices: []     # Optional: Allowed values for validation
-        pattern: string # Optional: Regex pattern for validation
+        choices: []     # Optional: Allowed values
+        pattern: string # Optional: Regex validation
         # OR reference a reusable argument definition:
         ref: ArgName    # Reference to an argument defined in the 'args' section
     env:                # Optional: Tool-specific environment variables
@@ -58,20 +58,15 @@ server:
 # Reusable argument definitions
 args:
   FilePath:
-    type: string
-    required: true
     help: Path to a file or directory
-    pattern: "^[^\\0]+$"  # No null bytes
+    pattern: "^[^\\0]+$"
 
   SearchPattern:
-    type: string
-    required: true
     help: Pattern to search for (supports wildcards and regex)
 
   OptionalPath:
-    type: string
-    required: false
     help: Optional directory path
+    required: false
     default: "."
 
 tools:
@@ -81,29 +76,37 @@ tools:
     help-cmd: ls --help
     args:
       - name: path
-        ref: OptionalPath  # Reference to reusable argument
+        ref: OptionalPath
 
   FindFiles:
     cmd: find $PATH -name "$PATTERN" -type f
     desc: Find files matching a pattern
     args:
       - name: PATH
-        ref: FilePath      # Reference to reusable argument
+        ref: FilePath
       - name: PATTERN
-        ref: SearchPattern # Reference to reusable argument
+        ref: SearchPattern
 
   GrepFiles:
     cmd: grep -r "$PATTERN" "$PATH"
     desc: Search for patterns in files recursively
     args:
       - name: PATH
-        ref: FilePath      # Reuse the same argument definition
+        ref: FilePath
       - name: PATTERN
-        ref: SearchPattern # Reuse the same argument definition
+        ref: SearchPattern
 
   GitStatus:
     cmd: git status --porcelain
     desc: Get git repository status
+
+  SimpleEcho:
+    cmd: echo "Hello $NAME"
+    desc: Simple echo command
+    args:
+      - name: NAME
+        help: Name to greet
+        default: "World"
 ```
 
 ### Variable Substitution
