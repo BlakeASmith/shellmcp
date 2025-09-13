@@ -106,10 +106,15 @@ def generate(config_file: str, output_dir: str = None, verbose: bool = False) ->
         
         # Determine output directory
         if output_dir is None:
-            output_dir = Path(config_file).parent
+            # Create a subdirectory matching the server name by default
+            config_dir = Path(config_file).parent
+            server_name = config.server.name.replace('-', '_').replace(' ', '_').lower()
+            output_dir = config_dir / server_name
         else:
             output_dir = Path(output_dir)
-            output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Create the output directory
+        output_dir.mkdir(parents=True, exist_ok=True)
         
         # Generate server file
         server_file = generator.generate_server(config_file, str(output_dir / f"{config.server.name.replace('-', '_')}_server.py"))

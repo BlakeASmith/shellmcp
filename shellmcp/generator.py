@@ -48,6 +48,10 @@ class FastMCPGenerator:
             config_path = Path(config_file)
             output_file = config_path.parent / f"{config.server.name.replace('-', '_')}_server.py"
         
+        # Ensure the output directory exists
+        output_path = Path(output_file)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        
         # Write server file
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(server_code)
@@ -68,6 +72,10 @@ class FastMCPGenerator:
         if output_file is None:
             output_file = "requirements.txt"
         
+        # Ensure the output directory exists
+        output_path = Path(output_file)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(requirements)
         
@@ -80,6 +88,10 @@ class FastMCPGenerator:
         
         if output_file is None:
             output_file = "README.md"
+        
+        # Ensure the output directory exists
+        output_path = Path(output_file)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
         
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(readme_content)
