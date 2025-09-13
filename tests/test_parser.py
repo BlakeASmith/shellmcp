@@ -6,12 +6,11 @@ from pathlib import Path
 from shellmcp.parser import YMLParser
 
 
-class TestYMLParser:
-    """Test YMLParser class."""
-    
-    def test_load_from_string(self):
-        """Test loading configuration from string."""
-        yaml_content = """
+# YMLParser tests
+
+def test_yml_parser_load_from_string():
+    """Test loading configuration from string."""
+    yaml_content = """
 server:
   name: test-server
   desc: Test server description
@@ -25,17 +24,18 @@ tools:
         help: Message to echo
         default: "Hello World"
 """
-        parser = YMLParser()
-        config = parser.load_from_string(yaml_content)
-        
-        assert config.server.name == "test-server"
-        assert config.server.desc == "Test server description"
-        assert "TestTool" in config.tools
-        assert config.tools["TestTool"].cmd == "echo {{ message }}"
+    parser = YMLParser()
+    config = parser.load_from_string(yaml_content)
     
-    def test_load_from_file(self):
-        """Test loading configuration from file."""
-        yaml_content = """
+    assert config.server.name == "test-server"
+    assert config.server.desc == "Test server description"
+    assert "TestTool" in config.tools
+    assert config.tools["TestTool"].cmd == "echo {{ message }}"
+
+
+def test_yml_parser_load_from_file():
+    """Test loading configuration from file."""
+    yaml_content = """
 server:
   name: test-server
   desc: Test server description
@@ -45,55 +45,59 @@ tools:
     cmd: echo {{ message }}
     desc: Test tool
 """
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
-            f.write(yaml_content)
-            temp_path = f.name
-        
-        try:
-            parser = YMLParser()
-            config = parser.load_from_file(temp_path)
-            
-            assert config.server.name == "test-server"
-            assert config.server.desc == "Test server description"
-        finally:
-            Path(temp_path).unlink()
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+        f.write(yaml_content)
+        temp_path = f.name
     
-    def test_load_from_file_not_found(self):
-        """Test loading from non-existent file."""
+    try:
         parser = YMLParser()
-        with pytest.raises(FileNotFoundError):
-            parser.load_from_file("non_existent_file.yml")
-    
-    def test_load_from_dict(self):
-        """Test loading configuration from dictionary."""
-        data = {
-            "server": {
-                "name": "test-server",
-                "desc": "Test server description"
-            },
-            "tools": {
-                "TestTool": {
-                    "cmd": "echo {{ message }}",
-                    "desc": "Test tool"
-                }
-            }
-        }
-        
-        parser = YMLParser()
-        config = parser.load_from_dict(data)
+        config = parser.load_from_file(temp_path)
         
         assert config.server.name == "test-server"
-        assert "TestTool" in config.tools
+        assert config.server.desc == "Test server description"
+    finally:
+        Path(temp_path).unlink()
+
+
+def test_yml_parser_load_from_file_not_found():
+    """Test loading from non-existent file."""
+    parser = YMLParser()
+    with pytest.raises(FileNotFoundError):
+        parser.load_from_file("non_existent_file.yml")
+
+
+def test_yml_parser_load_from_dict():
+    """Test loading configuration from dictionary."""
+    data = {
+        "server": {
+            "name": "test-server",
+            "desc": "Test server description"
+        },
+        "tools": {
+            "TestTool": {
+                "cmd": "echo {{ message }}",
+                "desc": "Test tool"
+            }
+        }
+    }
     
-    def test_invalid_yaml(self):
-        """Test handling of invalid YAML."""
-        parser = YMLParser()
-        with pytest.raises((ValueError, Exception)):  # YAML parsing can raise different exceptions
-            parser.load_from_string("invalid: yaml: content: [")
+    parser = YMLParser()
+    config = parser.load_from_dict(data)
     
-    def test_validate_all_templates(self):
-        """Test template validation for all tools."""
-        yaml_content = """
+    assert config.server.name == "test-server"
+    assert "TestTool" in config.tools
+
+
+def test_yml_parser_invalid_yaml():
+    """Test handling of invalid YAML."""
+    parser = YMLParser()
+    with pytest.raises((ValueError, Exception)):  # YAML parsing can raise different exceptions
+        parser.load_from_string("invalid: yaml: content: [")
+
+
+def test_yml_parser_validate_all_templates():
+    """Test template validation for all tools."""
+    yaml_content = """
 server:
   name: test-server
   desc: Test server description
@@ -107,16 +111,17 @@ tools:
     cmd: echo {{ unclosed_template
     desc: Invalid tool
 """
-        parser = YMLParser()
-        config = parser.load_from_string(yaml_content)
-        
-        validation_results = parser.validate_all_templates()
-        assert validation_results["tools"]["ValidTool"] is True
-        assert validation_results["tools"]["InvalidTool"] is False
+    parser = YMLParser()
+    config = parser.load_from_string(yaml_content)
     
-    def test_get_tool_template_variables(self):
-        """Test extracting template variables from tools."""
-        yaml_content = """
+    validation_results = parser.validate_all_templates()
+    assert validation_results["tools"]["ValidTool"] is True
+    assert validation_results["tools"]["InvalidTool"] is False
+
+
+def test_yml_parser_get_tool_template_variables():
+    """Test extracting template variables from tools."""
+    yaml_content = """
 server:
   name: test-server
   desc: Test server description
@@ -135,19 +140,20 @@ tools:
       {% endif %}
     desc: Complex tool
 """
-        parser = YMLParser()
-        config = parser.load_from_string(yaml_content)
-        
-        simple_vars = parser.get_tool_template_variables("SimpleTool")
-        assert "message" in simple_vars
-        
-        complex_vars = parser.get_tool_template_variables("ComplexTool")
-        assert "verbose" in complex_vars
-        assert "message" in complex_vars
+    parser = YMLParser()
+    config = parser.load_from_string(yaml_content)
     
-    def test_get_resolved_tool_arguments(self):
-        """Test getting resolved tool arguments."""
-        yaml_content = """
+    simple_vars = parser.get_tool_template_variables("SimpleTool")
+    assert "message" in simple_vars
+    
+    complex_vars = parser.get_tool_template_variables("ComplexTool")
+    assert "verbose" in complex_vars
+    assert "message" in complex_vars
+
+
+def test_yml_parser_get_resolved_tool_arguments():
+    """Test getting resolved tool arguments."""
+    yaml_content = """
 server:
   name: test-server
   desc: Test server description
@@ -171,29 +177,30 @@ tools:
         type: boolean
         default: false
 """
-        parser = YMLParser()
-        config = parser.load_from_string(yaml_content)
-        
-        resolved_args = parser.get_resolved_tool_arguments("TestTool")
-        assert len(resolved_args) == 2
-        
-        # First argument should be resolved from reference
-        file_arg = next(arg for arg in resolved_args if arg.name == "file")
-        assert file_arg.help == "Path to a file"
-        assert file_arg.type == "string"
-        # Note: The pattern might have different escape sequence representation
-        assert file_arg.pattern is not None
-        assert file_arg.ref is None  # Should be resolved
-        
-        # Second argument should be as defined
-        verbose_arg = next(arg for arg in resolved_args if arg.name == "verbose")
-        assert verbose_arg.help == "Verbose output"
-        assert verbose_arg.type == "boolean"
-        assert verbose_arg.default is False
+    parser = YMLParser()
+    config = parser.load_from_string(yaml_content)
     
-    def test_validate_argument_consistency(self):
-        """Test validation of argument consistency."""
-        yaml_content = """
+    resolved_args = parser.get_resolved_tool_arguments("TestTool")
+    assert len(resolved_args) == 2
+    
+    # First argument should be resolved from reference
+    file_arg = next(arg for arg in resolved_args if arg.name == "file")
+    assert file_arg.help == "Path to a file"
+    assert file_arg.type == "string"
+    # Note: The pattern might have different escape sequence representation
+    assert file_arg.pattern is not None
+    assert file_arg.ref is None  # Should be resolved
+    
+    # Second argument should be as defined
+    verbose_arg = next(arg for arg in resolved_args if arg.name == "verbose")
+    assert verbose_arg.help == "Verbose output"
+    assert verbose_arg.type == "boolean"
+    assert verbose_arg.default is False
+
+
+def test_yml_parser_validate_argument_consistency():
+    """Test validation of argument consistency."""
+    yaml_content = """
 server:
   name: test-server
   desc: Test server description
@@ -214,17 +221,18 @@ tools:
         help: Message to echo
         # Missing 'extra' argument
 """
-        parser = YMLParser()
-        config = parser.load_from_string(yaml_content)
-        
-        issues = parser.validate_argument_consistency()
-        assert "ConsistentTool" not in issues["tools"]
-        assert "InconsistentTool" in issues["tools"]
-        assert "extra" in issues["tools"]["InconsistentTool"]
+    parser = YMLParser()
+    config = parser.load_from_string(yaml_content)
     
-    def test_get_server_info(self):
-        """Test getting server information."""
-        yaml_content = """
+    issues = parser.validate_argument_consistency()
+    assert "ConsistentTool" not in issues["tools"]
+    assert "InconsistentTool" in issues["tools"]
+    assert "extra" in issues["tools"]["InconsistentTool"]
+
+
+def test_yml_parser_get_server_info():
+    """Test getting server information."""
+    yaml_content = """
 server:
   name: test-server
   desc: Test server description
@@ -245,20 +253,21 @@ tools:
     cmd: ls {{ path }}
     desc: Tool 2
 """
-        parser = YMLParser()
-        config = parser.load_from_string(yaml_content)
-        
-        server_info = parser.get_server_info()
-        assert server_info["name"] == "test-server"
-        assert server_info["description"] == "Test server description"
-        assert server_info["version"] == "2.0.0"
-        assert server_info["environment_variables"]["NODE_ENV"] == "production"
-        assert server_info["tools_count"] == 2
-        assert server_info["reusable_args_count"] == 1
+    parser = YMLParser()
+    config = parser.load_from_string(yaml_content)
     
-    def test_get_tools_summary(self):
-        """Test getting tools summary."""
-        yaml_content = """
+    server_info = parser.get_server_info()
+    assert server_info["name"] == "test-server"
+    assert server_info["description"] == "Test server description"
+    assert server_info["version"] == "2.0.0"
+    assert server_info["environment_variables"]["NODE_ENV"] == "production"
+    assert server_info["tools_count"] == 2
+    assert server_info["reusable_args_count"] == 1
+
+
+def test_yml_parser_get_tools_summary():
+    """Test getting tools summary."""
+    yaml_content = """
 server:
   name: test-server
   desc: Test server description
@@ -275,17 +284,17 @@ tools:
     env:
       DEBUG: "true"
 """
-        parser = YMLParser()
-        config = parser.load_from_string(yaml_content)
-        
-        summary = parser.get_tools_summary()
-        assert "TestTool" in summary
-        
-        tool_info = summary["TestTool"]
-        assert tool_info["description"] == "Test tool"
-        assert tool_info["command"] == "echo {{ message }}"
-        assert tool_info["help_command"] == "echo --help"
-        assert tool_info["arguments_count"] == 1
-        assert "message" in tool_info["template_variables"]
-        assert tool_info["environment_variables"]["DEBUG"] == "true"
-        assert tool_info["has_valid_template"] is True
+    parser = YMLParser()
+    config = parser.load_from_string(yaml_content)
+    
+    summary = parser.get_tools_summary()
+    assert "TestTool" in summary
+    
+    tool_info = summary["TestTool"]
+    assert tool_info["description"] == "Test tool"
+    assert tool_info["command"] == "echo {{ message }}"
+    assert tool_info["help_command"] == "echo --help"
+    assert tool_info["arguments_count"] == 1
+    assert "message" in tool_info["template_variables"]
+    assert tool_info["environment_variables"]["DEBUG"] == "true"
+    assert tool_info["has_valid_template"] is True

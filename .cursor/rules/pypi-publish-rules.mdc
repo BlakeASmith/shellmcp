@@ -1,0 +1,9 @@
+---
+alwaysApply: true
+---
+
+## PyPi Publish Guidelines
+
+The `pypi-publish.yml` github workflow runs on any push to the `main` branch. It will check
+the current `version` from the `pyproject.toml` against the version that `pypi` has and will
+publish a new version automatically if the `pyproject.toml` version has been updated.
