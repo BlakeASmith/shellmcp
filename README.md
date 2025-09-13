@@ -20,8 +20,7 @@ args:
   ArgName:              # Argument definition name
     help: string        # Required: Argument description
     type: string        # Optional: string|number|boolean|array (default: string)
-    required: bool      # Optional: Whether required (default: true)
-    default: any        # Optional: Default value
+    default: any        # Optional: Default value (makes argument optional)
     choices: []         # Optional: Allowed values
     pattern: string     # Optional: Regex validation
 ```
@@ -38,8 +37,7 @@ tools:
       - name: string    # Required: Argument name
         help: string    # Required: Argument description
         type: string    # Optional: string|number|boolean|array (default: string)
-        required: bool  # Optional: Whether required (default: true)
-        default: any    # Optional: Default value
+        default: any    # Optional: Default value (makes argument optional)
         choices: []     # Optional: Allowed values
         pattern: string # Optional: Regex validation
         # OR reference a reusable argument definition:
@@ -66,7 +64,6 @@ args:
 
   OptionalPath:
     help: Optional directory path
-    required: false
     default: "."
 
 tools:
