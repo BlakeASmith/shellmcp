@@ -14,6 +14,16 @@ server:
   version: string       # Optional: Server version (default: "1.0.0")
   env:                  # Optional: Environment variables
     VAR_NAME: value
+
+# Optional: Reusable argument definitions
+args:
+  ArgName:              # Argument definition name
+    type: string        # Argument type (string, number, boolean, array)
+    required: bool      # Whether argument is required (default: true)
+    help: string        # Argument description
+    default: any        # Default value
+    choices: []         # Allowed values for validation
+    pattern: string     # Regex pattern for validation
 ```
 
 ### Tool Configuration
@@ -32,6 +42,8 @@ tools:
         default: any    # Optional: Default value
         choices: []     # Optional: Allowed values for validation
         pattern: string # Optional: Regex pattern for validation
+        # OR reference a reusable argument definition:
+        ref: ArgName    # Reference to an argument defined in the 'args' section
     env:                # Optional: Tool-specific environment variables
       VAR_NAME: value
 ```
@@ -43,6 +55,25 @@ server:
   name: filesystem-mcp
   desc: MCP Server for filesystem operations
 
+# Reusable argument definitions
+args:
+  FilePath:
+    type: string
+    required: true
+    help: Path to a file or directory
+    pattern: "^[^\\0]+$"  # No null bytes
+
+  SearchPattern:
+    type: string
+    required: true
+    help: Pattern to search for (supports wildcards and regex)
+
+  OptionalPath:
+    type: string
+    required: false
+    help: Optional directory path
+    default: "."
+
 tools:
   ListFiles:
     cmd: ls -la $@
@@ -50,23 +81,25 @@ tools:
     help-cmd: ls --help
     args:
       - name: path
-        type: string
-        required: false
-        help: Directory path to list
-        default: "."
+        ref: OptionalPath  # Reference to reusable argument
 
   FindFiles:
     cmd: find $PATH -name "$PATTERN" -type f
     desc: Find files matching a pattern
     args:
       - name: PATH
-        type: string
-        required: true
-        help: Directory to search in
+        ref: FilePath      # Reference to reusable argument
       - name: PATTERN
-        type: string
-        required: true
-        help: File pattern to match
+        ref: SearchPattern # Reference to reusable argument
+
+  GrepFiles:
+    cmd: grep -r "$PATTERN" "$PATH"
+    desc: Search for patterns in files recursively
+    args:
+      - name: PATH
+        ref: FilePath      # Reuse the same argument definition
+      - name: PATTERN
+        ref: SearchPattern # Reuse the same argument definition
 
   GitStatus:
     cmd: git status --porcelain
