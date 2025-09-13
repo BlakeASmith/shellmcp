@@ -4,12 +4,46 @@ MCP Server for filesystem operations
 
 ## Installation
 
-1. Install dependencies:
+### Option 1: Using Virtual Environment (Recommended)
+
+1. **Create a virtual environment**:
+```bash
+python -m venv venv
+```
+
+2. **Activate the virtual environment**:
+   - **Linux/macOS**:
+   ```bash
+   source venv/bin/activate
+   ```
+   - **Windows**:
+   ```cmd
+   venv\Scripts\activate
+   ```
+
+3. **Install dependencies**:
 ```bash
 pip install -r requirements.txt
 ```
 
-2. Run the server:
+4. **Run the server**:
+```bash
+python filesystem_mcp_server.py
+```
+
+5. **Deactivate when done** (optional):
+```bash
+deactivate
+```
+
+### Option 2: System-wide Installation
+
+1. **Install dependencies**:
+```bash
+pip install -r requirements.txt
+```
+
+2. **Run the server**:
 ```bash
 python filesystem_mcp_server.py
 ```

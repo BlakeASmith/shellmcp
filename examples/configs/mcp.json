@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "filesystem-mcp": {
-      "command": "python",
+      "command": "examples/configs/venv/bin/python",
       "args": ["examples/configs/filesystem_mcp_server.py"],
       "cwd": "examples/configs",
       "env": {

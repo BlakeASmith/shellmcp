@@ -4,12 +4,51 @@
 
 ## Installation
 
-1. Install dependencies:
+### Option 1: Using Virtual Environment (Recommended)
+
+1. **Create a virtual environment**:
+```bash
+python3 -m venv venv
+```
+
+**Note**: On Ubuntu/Debian systems, if you get an "ensurepip is not available" error, install the python3-venv package first:
+```bash
+sudo apt install python3-venv
+```
+
+2. **Activate the virtual environment**:
+   - **Linux/macOS**:
+   ```bash
+   source venv/bin/activate
+   ```
+   - **Windows**:
+   ```cmd
+   venv\Scripts\activate
+   ```
+
+3. **Install dependencies**:
 ```bash
 pip install -r requirements.txt
 ```
 
-2. Run the server:
+4. **Run the server**:
+```bash
+python {{ config.server.name.replace('-', '_') }}_server.py
+```
+
+5. **Deactivate when done** (optional):
+```bash
+deactivate
+```
+
+### Option 2: System-wide Installation
+
+1. **Install dependencies**:
+```bash
+pip install -r requirements.txt
+```
+
+2. **Run the server**:
 ```bash
 python {{ config.server.name.replace('-', '_') }}_server.py
 ```

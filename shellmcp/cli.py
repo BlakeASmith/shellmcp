@@ -135,6 +135,10 @@ def generate(config_file: str, output_dir: str = None, verbose: bool = False) ->
         if verbose:
             print(f"\n🚀 To run the server:")
             print(f"   cd {output_dir}")
+            print(f"   # Create and activate virtual environment (recommended):")
+            print(f"   python -m venv venv")
+            print(f"   source venv/bin/activate  # Linux/macOS")
+            print(f"   # venv\\Scripts\\activate  # Windows")
             print(f"   pip install -r requirements.txt")
             print(f"   python {Path(server_file).name}")
             

@@ -294,6 +294,40 @@ if __name__ == "__main__":
 
 ## Running the Generated Server
 
+### Recommended: Using Virtual Environment
+
+1. **Create Virtual Environment**:
+   ```bash
+   python -m venv venv
+   ```
+
+2. **Activate Virtual Environment**:
+   - **Linux/macOS**:
+   ```bash
+   source venv/bin/activate
+   ```
+   - **Windows**:
+   ```cmd
+   venv\Scripts\activate
+   ```
+
+3. **Install Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Run the Server**:
+   ```bash
+   python my_mcp_server.py
+   ```
+
+5. **Deactivate when done**:
+   ```bash
+   deactivate
+   ```
+
+### Alternative: System-wide Installation
+
 1. **Install Dependencies**:
    ```bash
    pip install -r requirements.txt
@@ -303,6 +337,14 @@ if __name__ == "__main__":
    ```bash
    python my_mcp_server.py
    ```
+
+### Why Use Virtual Environments?
+
+- **Dependency Isolation**: Prevents conflicts with system Python packages
+- **Clean Environment**: Ensures consistent dependency versions
+- **Easy Cleanup**: Simply delete the `venv` folder to remove all dependencies
+- **Multiple Projects**: Run different servers with different dependency versions
+- **Production Safety**: Avoids modifying system Python installation
 
 3. **Connect with MCP Client**:
    The server runs on STDIO transport and can be connected to by any MCP-compatible client.
@@ -323,7 +365,7 @@ To use your generated FastMCP server with various editors and MCP clients, you n
    {
      "mcpServers": {
        "filesystem-mcp": {
-         "command": "python",
+         "command": "/path/to/your/venv/bin/python",
          "args": ["/path/to/your/filesystem_mcp_server.py"],
          "env": {
            "NODE_ENV": "production"
@@ -332,6 +374,8 @@ To use your generated FastMCP server with various editors and MCP clients, you n
      }
    }
    ```
+   
+   **Note**: Use the Python interpreter from your virtual environment (`/path/to/your/venv/bin/python`) instead of system Python for better dependency isolation.
 
 3. **Restart Claude Desktop** for changes to take effect.
 
@@ -342,7 +386,20 @@ To use your generated FastMCP server with various editors and MCP clients, you n
    %APPDATA%\Claude\claude_desktop_config.json
    ```
 
-2. **Add your server configuration** (same JSON as above)
+2. **Add your server configuration**:
+   ```json
+   {
+     "mcpServers": {
+       "filesystem-mcp": {
+         "command": "C:\\path\\to\\your\\venv\\Scripts\\python.exe",
+         "args": ["C:\\path\\to\\your\\filesystem_mcp_server.py"],
+         "env": {
+           "NODE_ENV": "production"
+         }
+       }
+     }
+   }
+   ```
 
 3. **Restart Claude Desktop**
 
@@ -353,7 +410,20 @@ To use your generated FastMCP server with various editors and MCP clients, you n
    ~/.config/Claude/claude_desktop_config.json
    ```
 
-2. **Add your server configuration** (same JSON as above)
+2. **Add your server configuration**:
+   ```json
+   {
+     "mcpServers": {
+       "filesystem-mcp": {
+         "command": "/path/to/your/venv/bin/python",
+         "args": ["/path/to/your/filesystem_mcp_server.py"],
+         "env": {
+           "NODE_ENV": "production"
+         }
+       }
+     }
+   }
+   ```
 
 3. **Restart Claude Desktop**
 
@@ -438,6 +508,23 @@ To use your generated FastMCP server with various editors and MCP clients, you n
 
 For any MCP-compatible client, use this standard configuration:
 
+**With Virtual Environment (Recommended):**
+```json
+{
+  "mcpServers": {
+    "your-server-name": {
+      "command": "/path/to/your/venv/bin/python",
+      "args": ["/absolute/path/to/your_server.py"],
+      "cwd": "/path/to/server/directory",
+      "env": {
+        "PYTHONPATH": "/path/to/server/directory"
+      }
+    }
+  }
+}
+```
+
+**With System Python:**
 ```json
 {
   "mcpServers": {
@@ -464,9 +551,56 @@ For any MCP-compatible client, use this standard configuration:
 
 1. **Check Paths**: Ensure all paths are absolute and correct
 2. **Python Path**: Make sure Python can find your server script
-3. **Dependencies**: Verify all required packages are installed
-4. **Permissions**: Check that the server script is executable
-5. **Logs**: Check editor logs for MCP connection errors
+3. **Virtual Environment**: Verify the venv path in MCP config points to the correct Python interpreter
+4. **Dependencies**: Verify all required packages are installed in the virtual environment
+5. **Permissions**: Check that the server script is executable
+6. **Logs**: Check editor logs for MCP connection errors
+
+### Virtual Environment Setup Issues
+
+**Common Issues:**
+- **Virtual environment not found**: Ensure `venv` directory exists in your server directory
+- **Python interpreter not found**: Check that `venv/bin/python` (Linux/macOS) or `venv\Scripts\python.exe` (Windows) exists
+- **Dependencies missing**: Activate the virtual environment and run `pip install -r requirements.txt`
+- **`ensurepip` not available**: Install the python3-venv package (Ubuntu/Debian)
+
+**Quick Fix:**
+```bash
+# Navigate to your server directory
+cd /path/to/your/server
+
+# Create virtual environment if missing
+python3 -m venv venv
+
+# Activate and install dependencies
+source venv/bin/activate  # Linux/macOS
+# or venv\Scripts\activate  # Windows
+pip install -r requirements.txt
+```
+
+**Ubuntu/Debian Systems:**
+If you get an "ensurepip is not available" error:
+```bash
+# Install python3-venv package
+sudo apt install python3-venv
+
+# Then create the virtual environment
+python3 -m venv venv
+```
+
+**Alternative: Using virtualenv**
+If `python3 -m venv` doesn't work:
+```bash
+# Install virtualenv
+pip install virtualenv
+
+# Create virtual environment
+virtualenv venv
+
+# Activate
+source venv/bin/activate  # Linux/macOS
+# or venv\Scripts\activate  # Windows
+```
 
 ### Testing Your Configuration
 

@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "{{ config.server.name }}": {
-      "command": "python",
+      "command": "{{ server_directory }}/venv/bin/python",
       "args": ["{{ server_script_path }}"],
       "cwd": "{{ server_directory }}",
       "env": {
