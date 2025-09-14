@@ -1,4 +1,4 @@
-"""Generate MCP server configuration JSON for AmazonQ."""
+"""Generate MCP server configuration JSON."""
 
 import json
 from pathlib import Path
@@ -8,8 +8,8 @@ from jinja2 import Environment, FileSystemLoader
 from .parser import YMLParser
 
 
-def generate_mcp_json(yml_file: str, server_path: str = None, 
-                     python_executable: str = "python3", output_file: str = None) -> str:
+def generate_mcp_config(yml_file: str, server_path: str = None, 
+                       python_executable: str = "python3", output_file: str = None) -> str:
     """
     Generate MCP server configuration JSON.
     

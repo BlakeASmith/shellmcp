@@ -145,39 +145,39 @@ Generate a FastMCP server from YAML configuration.
 shellmcp generate my-server.yml --output-dir ./output --verbose
 ```
 
-### `shellmcp mcp-json`
-Generate MCP server configuration JSON for AmazonQ.
+### `shellmcp mcp-config`
+Generate MCP server configuration JSON.
 
 ```bash
-shellmcp mcp-json my-server.yml
-shellmcp mcp-json my-server.yml --output-file mcp.json
+shellmcp mcp-config my-server.yml
+shellmcp mcp-config my-server.yml --output-file mcp.json
 ```
 
-## AmazonQ Integration
+## MCP Configuration
 
-ShellMCP can generate MCP server configuration JSON for AmazonQ:
+ShellMCP can generate MCP server configuration JSON:
 
 ```bash
-# Complete workflow: create → generate → get MCP JSON
+# Complete workflow: create → generate → get MCP config
 shellmcp new --name "my-tools" --desc "My custom tools"
 shellmcp add-tool my_tools.yml
 shellmcp generate my_tools.yml
-shellmcp mcp-json my_tools.yml
-# Copy the JSON to your AmazonQ mcp.json file!
+shellmcp mcp-config my_tools.yml
+# Copy the JSON to your MCP client configuration!
 ```
 
-The JSON generator:
+The MCP config generator:
 - Auto-detects your generated server file
 - Creates proper MCP server configuration
 - Outputs to stdout or file
 - Uses templates for consistent formatting
 
-See [AmazonQ Integration Guide](docs/amazonq-integration.md) for detailed documentation.
+See [MCP Integration Guide](docs/mcp-integration.md) for detailed documentation.
 
 ## Documentation
 
 - [YAML Specification](docs/yml-specification.md)
-- [AmazonQ Integration](docs/amazonq-integration.md)
+- [MCP Integration](docs/mcp-integration.md)
 
 ## License
 

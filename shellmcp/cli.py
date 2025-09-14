@@ -18,7 +18,7 @@ from .models import (
 )
 from .parser import YMLParser
 from .utils import get_choice, get_input, get_yes_no, load_or_create_config, save_config
-from .amazonq_installer import generate_mcp_json
+from .mcp_config import generate_mcp_config
 
 
 def _handle_error(error_msg: str, verbose: bool = False, exception: Exception = None) -> int:
@@ -537,10 +537,10 @@ def add_prompt(config_file: str, name: str = None, prompt_name: str = None, desc
         return _handle_error(f"Error adding prompt: {e}", exception=e)
 
 
-def mcp_json(config_file: str, server_path: str = None, python_executable: str = "python3", 
-             output_file: str = None) -> int:
+def mcp_config(config_file: str, server_path: str = None, python_executable: str = "python3", 
+               output_file: str = None) -> int:
     """
-    Generate MCP server configuration JSON for AmazonQ.
+    Generate MCP server configuration JSON.
     
     Args:
         config_file: Path to the YAML configuration file
@@ -555,7 +555,7 @@ def mcp_json(config_file: str, server_path: str = None, python_executable: str =
         if not _check_file_exists(config_file):
             return _handle_error(f"File '{config_file}' not found")
         
-        result = generate_mcp_json(
+        result = generate_mcp_config(
             config_file, server_path, python_executable, output_file
         )
         
@@ -567,7 +567,7 @@ def mcp_json(config_file: str, server_path: str = None, python_executable: str =
         return 0
         
     except Exception as e:
-        return _handle_error(f"Error generating MCP JSON: {e}", exception=e)
+        return _handle_error(f"Error generating MCP config: {e}", exception=e)
 
 
 def main():
@@ -579,5 +579,5 @@ def main():
         'add-tool': add_tool,
         'add-resource': add_resource,
         'add-prompt': add_prompt,
-        'mcp-json': mcp_json
+        'mcp-config': mcp_config
     })
