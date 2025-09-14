@@ -1,154 +1,417 @@
-# ShellMCP
+# shell-operations
 
-**Expose Shell Commands as MCP Tools**
+Common shell operations for file management, system info, and text processing
 
-ShellMCP is a powerful tool that allows you to easily create Model Context Protocol (MCP) servers by exposing shell commands as structured tools. Instead of granting AI agents full shell access (which poses security risks), ShellMCP enables you to expose only the specific commands you trust, allowing agents to work autonomously with a predefined set of safe operations.
+## Installation
 
-Define your tools in YAML, and ShellMCP generates a complete FastMCP server for you.
+### Option 1: Using Virtual Environment (Recommended)
 
-## Quick Start
-
+1. **Create a virtual environment**:
 ```bash
-# Install ShellMCP
-pip install shellmcp
-
-# Create a new server configuration
-shellmcp new --name "my-server" --desc "My custom MCP server"
-
-# Add a tool interactively
-shellmcp add-tool my-server.yml
-
-# Validate the configuration
-shellmcp validate my-server.yml
-
-# Generate the FastMCP server
-shellmcp generate my-server.yml
+python3 -m venv venv
 ```
 
-## Features
 
-- 🚀 **Simple YAML Configuration**: Define tools, resources, and prompts in clean YAML
-- 🔧 **Interactive CLI**: Add tools and resources with guided prompts
-- 📝 **Template Support**: Use Jinja2 templates for dynamic command generation
-- ✅ **Validation**: Built-in configuration validation and error checking
-- 🎯 **FastMCP Integration**: Generates production-ready FastMCP servers
-- 📦 **Complete Output**: Includes server code, requirements, and documentation
-- 🔒 **Security-First**: Expose only trusted commands to AI agents
-- 🎨 **Flexible**: Support for tools, resources, and prompts with reusable arguments
+2. **Activate the virtual environment**:
+   ```bash
+   source venv/bin/activate
+   ```
 
-## Example
-
-```yaml
-server:
-  name: "file-manager"
-  desc: "File system operations"
-  version: "1.0.0"
-
-args:
-  path_arg:
-    help: "Directory path"
-    type: string
-    default: "."
-  pattern_arg:
-    help: "Search pattern"
-    type: string
-
-tools:
-  list_files:
-    cmd: "ls -la {{path}}"
-    desc: "List files in a directory"
-    args:
-      - name: path
-        ref: path_arg
-  
-  search_files:
-    cmd: "find {{path}} -name '{{pattern}}' -type f"
-    desc: "Search for files matching a pattern"
-    args:
-      - name: path
-        ref: path_arg
-      - name: pattern
-        ref: pattern_arg
-
-resources:
-  system_info:
-    uri: "file:///tmp/system-info.txt"
-    name: "System Information"
-    description: "Current system status and info"
-    cmd: "uname -a && df -h"
-    mime_type: "text/plain"
-
-prompts:
-  file_analysis:
-    name: "File Analysis Assistant"
-    description: "Helps analyze file system contents"
-    template: |
-      Analyze the following file system information:
-      
-      Current directory: {{path}}
-      Files: {{file_list}}
-      
-      Provide insights about the file structure and suggest any organization improvements.
-    args:
-      - name: path
-        help: "Directory path to analyze"
-        type: string
-        default: "."
-      - name: file_list
-        help: "List of files to analyze"
-        type: string
-```
-
-## CLI Commands
-
-ShellMCP provides several commands to help you create and manage MCP servers:
-
-### `shellmcp new`
-Create a new server configuration file.
-
+3. **Install dependencies**:
 ```bash
-shellmcp new --name "my-server" --desc "My custom MCP server" --version "1.0.0"
+pip install -r requirements.txt
 ```
 
-### `shellmcp add-tool`
-Add a new tool to an existing configuration.
-
+4. **Run the server**:
 ```bash
-shellmcp add-tool my-server.yml --name "list-files" --cmd "ls -la {{path}}" --desc "List files in directory"
+python shell_operations_server.py
 ```
 
-### `shellmcp add-resource`
-Add a new resource to an existing configuration.
-
+5. **Deactivate when done** (optional):
 ```bash
-shellmcp add-resource my-server.yml --name "system-info" --uri "file:///tmp/system-info.txt" --resource-name "System Information"
+deactivate
 ```
 
-### `shellmcp add-prompt`
-Add a new prompt to an existing configuration.
+### Option 2: System-wide Installation
 
+1. **Install dependencies**:
 ```bash
-shellmcp add-prompt my-server.yml --name "file-analysis" --prompt-name "File Analysis Assistant"
+pip install -r requirements.txt
 ```
 
-### `shellmcp validate`
-Validate a YAML configuration file.
-
+2. **Run the server**:
 ```bash
-shellmcp validate my-server.yml --verbose
+python shell_operations_server.py
 ```
 
-### `shellmcp generate`
-Generate a FastMCP server from YAML configuration.
 
-```bash
-shellmcp generate my-server.yml --output-dir ./output --verbose
-```
+## Tools
 
-## Documentation
 
-- [YAML Specification](docs/yml-specification.md)
+### list_files
 
-## License
+List files and directories with detailed information
 
-MIT License - see [LICENSE](LICENSE) for details.
+**Function**: `list_files`
+
+**Arguments**:
+- `path` (string): Directory or file path [default: .]
+**Command**: `ls -la {{path}}`
+
+
+### find_files
+
+Find files matching a pattern
+
+**Function**: `find_files`
+
+**Arguments**:
+- `path` (string): Directory or file path [default: .]- `pattern` (string): Search pattern or regex
+**Command**: `find {{path}} -name '{{pattern}}' -type f`
+
+
+### find_directories
+
+Find directories matching a pattern
+
+**Function**: `find_directories`
+
+**Arguments**:
+- `path` (string): Directory or file path [default: .]- `pattern` (string): Search pattern or regex
+**Command**: `find {{path}} -name '{{pattern}}' -type d`
+
+
+### grep_text
+
+Search for text patterns in files
+
+**Function**: `grep_text`
+
+**Arguments**:
+- `pattern` (string): Search pattern or regex- `path` (string): Directory or file path [default: .]- `recursive` (boolean): Perform operation recursively [default: False]
+**Command**: `grep -r{{ 'n' if recursive else '' }} '{{pattern}}' {{path}}`
+
+
+### count_lines
+
+Count lines in a file
+
+**Function**: `count_lines`
+
+**Arguments**:
+- `path` (string): Directory or file path [default: .]
+**Command**: `wc -l {{path}}`
+
+
+### file_size
+
+Get file or directory size
+
+**Function**: `file_size`
+
+**Arguments**:
+- `path` (string): Directory or file path [default: .]
+**Command**: `du -h {{path}}`
+
+
+### disk_usage
+
+Show disk usage information
+
+**Function**: `disk_usage`
+
+**Arguments**:
+
+**Command**: `df -h`
+
+
+### memory_info
+
+Show memory usage information
+
+**Function**: `memory_info`
+
+**Arguments**:
+
+**Command**: `free -h`
+
+
+### process_list
+
+List running processes
+
+**Function**: `process_list`
+
+**Arguments**:
+
+**Command**: `ps aux`
+
+
+### system_info
+
+Show system information
+
+**Function**: `system_info`
+
+**Arguments**:
+
+**Command**: `uname -a`
+
+
+### current_user
+
+Show current user
+
+**Function**: `current_user`
+
+**Arguments**:
+
+**Command**: `whoami`
+
+
+### current_directory
+
+Show current working directory
+
+**Function**: `current_directory`
+
+**Arguments**:
+
+**Command**: `pwd`
+
+
+### create_directory
+
+Create directory (with parent directories if needed)
+
+**Function**: `create_directory`
+
+**Arguments**:
+- `path` (string): Directory or file path [default: .]
+**Command**: `mkdir -p {{path}}`
+
+
+### copy_file
+
+Copy file or directory
+
+**Function**: `copy_file`
+
+**Arguments**:
+- `source` (string): Source file or directory path- `destination` (string): Destination file or directory path
+**Command**: `cp {{source}} {{destination}}`
+
+
+### move_file
+
+Move or rename file or directory
+
+**Function**: `move_file`
+
+**Arguments**:
+- `source` (string): Source file or directory path- `destination` (string): Destination file or directory path
+**Command**: `mv {{source}} {{destination}}`
+
+
+### remove_file
+
+Remove file (force, no error if not found)
+
+**Function**: `remove_file`
+
+**Arguments**:
+- `path` (string): Directory or file path [default: .]
+**Command**: `rm -f {{path}}`
+
+
+### remove_directory
+
+Remove directory and all contents (force, recursive)
+
+**Function**: `remove_directory`
+
+**Arguments**:
+- `path` (string): Directory or file path [default: .]
+**Command**: `rm -rf {{path}}`
+
+
+### cat_file
+
+Display file contents
+
+**Function**: `cat_file`
+
+**Arguments**:
+- `path` (string): Directory or file path [default: .]
+**Command**: `cat {{path}}`
+
+
+### head_file
+
+Show first N lines of a file
+
+**Function**: `head_file`
+
+**Arguments**:
+- `path` (string): Directory or file path [default: .]- `lines` (number): Number of lines to show [default: 10]
+**Command**: `head -n {{lines}} {{path}}`
+
+
+### tail_file
+
+Show last N lines of a file
+
+**Function**: `tail_file`
+
+**Arguments**:
+- `path` (string): Directory or file path [default: .]- `lines` (number): Number of lines to show [default: 10]
+**Command**: `tail -n {{lines}} {{path}}`
+
+
+### sort_file
+
+Sort lines in a file
+
+**Function**: `sort_file`
+
+**Arguments**:
+- `path` (string): Directory or file path [default: .]
+**Command**: `sort {{path}}`
+
+
+### unique_lines
+
+Get unique lines from a file
+
+**Function**: `unique_lines`
+
+**Arguments**:
+- `path` (string): Directory or file path [default: .]
+**Command**: `sort {{path}} | uniq`
+
+
+### word_count
+
+Count words in a file
+
+**Function**: `word_count`
+
+**Arguments**:
+- `path` (string): Directory or file path [default: .]
+**Command**: `wc -w {{path}}`
+
+
+### character_count
+
+Count characters in a file
+
+**Function**: `character_count`
+
+**Arguments**:
+- `path` (string): Directory or file path [default: .]
+**Command**: `wc -c {{path}}`
+
+
+### compress_file
+
+Compress file using gzip
+
+**Function**: `compress_file`
+
+**Arguments**:
+- `path` (string): Directory or file path [default: .]
+**Command**: `gzip {{path}}`
+
+
+### decompress_file
+
+Decompress gzip file
+
+**Function**: `decompress_file`
+
+**Arguments**:
+- `path` (string): Directory or file path [default: .]
+**Command**: `gunzip {{path}}`
+
+
+### archive_directory
+
+Create compressed tar archive of directory
+
+**Function**: `archive_directory`
+
+**Arguments**:
+- `path` (string): Directory or file path [default: .]- `output` (string): Output file path
+**Command**: `tar -czf {{output}} {{path}}`
+
+
+### extract_archive
+
+Extract compressed tar archive
+
+**Function**: `extract_archive`
+
+**Arguments**:
+- `path` (string): Directory or file path [default: .]
+**Command**: `tar -xzf {{path}}`
+
+
+### network_connections
+
+Show network connections
+
+**Function**: `network_connections`
+
+**Arguments**:
+
+**Command**: `netstat -tuln`
+
+
+### ping_host
+
+Ping a host 4 times
+
+**Function**: `ping_host`
+
+**Arguments**:
+- `host` (string): Hostname or IP address to ping
+**Command**: `ping -c 4 {{host}}`
+
+
+### environment_vars
+
+Show environment variables
+
+**Function**: `environment_vars`
+
+**Arguments**:
+
+**Command**: `env`
+
+
+### set_environment
+
+Set environment variable
+
+**Function**: `set_environment`
+
+**Arguments**:
+- `name` (string): Environment variable name- `value` (string): Environment variable value
+**Command**: `export {{name}}={{value}}`
+
+
+## Configuration
+
+This server was generated from a YAML configuration file. The server exposes shell commands as MCP tools with the following features:
+
+- Jinja2 template support for dynamic command generation
+- Argument validation with patterns and choices
+- Environment variable support
+- Error handling and timeout protection
+
+## Server Information
+
+- **Name**: shell-operations
+- **Version**: 1.0.0
+- **Description**: Common shell operations for file management, system info, and text processing
+- **Tools**: 32

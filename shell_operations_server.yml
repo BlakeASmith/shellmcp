@@ -1,0 +1,361 @@
+server:
+  name: "shell-operations"
+  desc: "Common shell operations for file management, system info, and text processing"
+  version: "1.0.0"
+
+args:
+  path_arg:
+    help: "Directory or file path"
+    type: string
+    default: "."
+  pattern_arg:
+    help: "Search pattern or regex"
+    type: string
+  output_arg:
+    help: "Output file path"
+    type: string
+  recursive_arg:
+    help: "Perform operation recursively"
+    type: boolean
+    default: false
+
+tools:
+  list_files:
+    cmd: "ls -la {{path}}"
+    desc: "List files and directories with detailed information"
+    args:
+      - name: path
+        help: ""
+        ref: path_arg
+
+  find_files:
+    cmd: "find {{path}} -name '{{pattern}}' -type f"
+    desc: "Find files matching a pattern"
+    args:
+      - name: path
+        help: ""
+        ref: path_arg
+      - name: pattern
+        help: ""
+        ref: pattern_arg
+
+  find_directories:
+    cmd: "find {{path}} -name '{{pattern}}' -type d"
+    desc: "Find directories matching a pattern"
+    args:
+      - name: path
+        help: ""
+        ref: path_arg
+      - name: pattern
+        help: ""
+        ref: pattern_arg
+
+  grep_text:
+    cmd: "grep -r{{ 'n' if recursive else '' }} '{{pattern}}' {{path}}"
+    desc: "Search for text patterns in files"
+    args:
+      - name: pattern
+        help: ""
+        ref: pattern_arg
+      - name: path
+        help: ""
+        ref: path_arg
+      - name: recursive
+        help: ""
+        ref: recursive_arg
+
+  count_lines:
+    cmd: "wc -l {{path}}"
+    desc: "Count lines in a file"
+    args:
+      - name: path
+        help: ""
+        ref: path_arg
+
+  file_size:
+    cmd: "du -h {{path}}"
+    desc: "Get file or directory size"
+    args:
+      - name: path
+        help: ""
+        ref: path_arg
+
+  disk_usage:
+    cmd: "df -h"
+    desc: "Show disk usage information"
+    help_cmd: "df --help"
+
+  memory_info:
+    cmd: "free -h"
+    desc: "Show memory usage information"
+    help_cmd: "free --help"
+
+  process_list:
+    cmd: "ps aux"
+    desc: "List running processes"
+    help_cmd: "ps --help"
+
+  system_info:
+    cmd: "uname -a"
+    desc: "Show system information"
+    help_cmd: "uname --help"
+
+  current_user:
+    cmd: "whoami"
+    desc: "Show current user"
+
+  current_directory:
+    cmd: "pwd"
+    desc: "Show current working directory"
+
+  create_directory:
+    cmd: "mkdir -p {{path}}"
+    desc: "Create directory (with parent directories if needed)"
+    args:
+      - name: path
+        help: ""
+        ref: path_arg
+
+  copy_file:
+    cmd: "cp {{source}} {{destination}}"
+    desc: "Copy file or directory"
+    args:
+      - name: source
+        help: "Source file or directory path"
+        type: string
+      - name: destination
+        help: "Destination file or directory path"
+        type: string
+
+  move_file:
+    cmd: "mv {{source}} {{destination}}"
+    desc: "Move or rename file or directory"
+    args:
+      - name: source
+        help: "Source file or directory path"
+        type: string
+      - name: destination
+        help: "Destination file or directory path"
+        type: string
+
+  remove_file:
+    cmd: "rm -f {{path}}"
+    desc: "Remove file (force, no error if not found)"
+    args:
+      - name: path
+        help: ""
+        ref: path_arg
+
+  remove_directory:
+    cmd: "rm -rf {{path}}"
+    desc: "Remove directory and all contents (force, recursive)"
+    args:
+      - name: path
+        help: ""
+        ref: path_arg
+
+  cat_file:
+    cmd: "cat {{path}}"
+    desc: "Display file contents"
+    args:
+      - name: path
+        help: ""
+        ref: path_arg
+
+  head_file:
+    cmd: "head -n {{lines}} {{path}}"
+    desc: "Show first N lines of a file"
+    args:
+      - name: path
+        help: ""
+        ref: path_arg
+      - name: lines
+        help: "Number of lines to show"
+        type: number
+        default: 10
+
+  tail_file:
+    cmd: "tail -n {{lines}} {{path}}"
+    desc: "Show last N lines of a file"
+    args:
+      - name: path
+        help: ""
+        ref: path_arg
+      - name: lines
+        help: "Number of lines to show"
+        type: number
+        default: 10
+
+  sort_file:
+    cmd: "sort {{path}}"
+    desc: "Sort lines in a file"
+    args:
+      - name: path
+        help: ""
+        ref: path_arg
+
+  unique_lines:
+    cmd: "sort {{path}} | uniq"
+    desc: "Get unique lines from a file"
+    args:
+      - name: path
+        help: ""
+        ref: path_arg
+
+  word_count:
+    cmd: "wc -w {{path}}"
+    desc: "Count words in a file"
+    args:
+      - name: path
+        help: ""
+        ref: path_arg
+
+  character_count:
+    cmd: "wc -c {{path}}"
+    desc: "Count characters in a file"
+    args:
+      - name: path
+        help: ""
+        ref: path_arg
+
+  compress_file:
+    cmd: "gzip {{path}}"
+    desc: "Compress file using gzip"
+    args:
+      - name: path
+        help: ""
+        ref: path_arg
+
+  decompress_file:
+    cmd: "gunzip {{path}}"
+    desc: "Decompress gzip file"
+    args:
+      - name: path
+        help: ""
+        ref: path_arg
+
+  archive_directory:
+    cmd: "tar -czf {{output}} {{path}}"
+    desc: "Create compressed tar archive of directory"
+    args:
+      - name: path
+        help: ""
+        ref: path_arg
+      - name: output
+        help: ""
+        ref: output_arg
+
+  extract_archive:
+    cmd: "tar -xzf {{path}}"
+    desc: "Extract compressed tar archive"
+    args:
+      - name: path
+        help: ""
+        ref: path_arg
+
+  network_connections:
+    cmd: "netstat -tuln"
+    desc: "Show network connections"
+    help_cmd: "netstat --help"
+
+  ping_host:
+    cmd: "ping -c 4 {{host}}"
+    desc: "Ping a host 4 times"
+    args:
+      - name: host
+        help: "Hostname or IP address to ping"
+        type: string
+
+  environment_vars:
+    cmd: "env"
+    desc: "Show environment variables"
+
+  set_environment:
+    cmd: "export {{name}}={{value}}"
+    desc: "Set environment variable"
+    args:
+      - name: name
+        help: "Environment variable name"
+        type: string
+      - name: value
+        help: "Environment variable value"
+        type: string
+
+resources:
+  system_status:
+    uri: "file:///tmp/system-status.txt"
+    name: "System Status"
+    description: "Current system status including disk, memory, and process information"
+    cmd: "echo '=== DISK USAGE ===' && df -h && echo -e '\n=== MEMORY USAGE ===' && free -h && echo -e '\n=== LOAD AVERAGE ===' && uptime && echo -e '\n=== RUNNING PROCESSES ===' && ps aux --sort=-%cpu | head -10"
+    mime_type: "text/plain"
+
+  file_info:
+    uri: "file:///tmp/file-info.txt"
+    name: "File Information"
+    description: "Detailed information about files in current directory"
+    cmd: "ls -la && echo -e '\n=== FILE TYPES ===' && file * 2>/dev/null || echo 'No files to analyze'"
+    mime_type: "text/plain"
+
+prompts:
+  file_analysis:
+    name: "File Analysis Assistant"
+    description: "Helps analyze file system contents and structure"
+    template: |
+      Analyze the following file system information:
+      
+      Current directory: {{path}}
+      Files and directories: {{file_list}}
+      
+      Please provide insights about:
+      1. File structure and organization
+      2. File types and sizes
+      3. Potential organization improvements
+      4. Security considerations (permissions, sensitive files)
+      5. Recommendations for cleanup or optimization
+      
+      If you notice any unusual patterns or potential issues, please highlight them.
+    args:
+      - name: path
+        help: "Directory path to analyze"
+        type: string
+        default: "."
+      - name: file_list
+        help: "List of files to analyze (from ls command output)"
+        type: string
+
+  system_diagnosis:
+    name: "System Diagnosis Assistant"
+    description: "Helps diagnose system performance and health issues"
+    template: |
+      Based on the following system information, please provide a diagnosis:
+      
+      System Info: {{system_info}}
+      Memory Usage: {{memory_info}}
+      Disk Usage: {{disk_usage}}
+      Load Average: {{load_average}}
+      Top Processes: {{top_processes}}
+      
+      Please analyze:
+      1. Overall system health
+      2. Performance bottlenecks
+      3. Resource utilization
+      4. Potential issues or concerns
+      5. Recommendations for optimization
+      
+      If you identify any critical issues, please prioritize them and suggest immediate actions.
+    args:
+      - name: system_info
+        help: "System information from uname command"
+        type: string
+      - name: memory_info
+        help: "Memory usage information from free command"
+        type: string
+      - name: disk_usage
+        help: "Disk usage information from df command"
+        type: string
+      - name: load_average
+        help: "System load average from uptime command"
+        type: string
+      - name: top_processes
+        help: "Top processes by CPU usage"
+        type: string
