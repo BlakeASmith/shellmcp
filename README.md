@@ -130,7 +130,6 @@ The `basics` configuration includes tools for:
 - System information (memory, disk, network)
 - Text operations (read, write, search)
 - Resources for system status and environment info
-- Prompts for file analysis and system diagnosis
 
 ### `shellmcp new`
 Create a new server configuration file.
