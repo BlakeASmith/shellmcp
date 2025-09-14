@@ -61,7 +61,7 @@ tools:
 
 resources:
   system_info:
-    uri: "system://info"
+    uri: "file:///tmp/system-info.txt"
     name: "System Information"
     description: "Current system status and info"
     cmd: "uname -a && df -h"
