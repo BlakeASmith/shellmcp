@@ -1,5 +1,7 @@
 """Generated FastMCP server from YAML configuration."""
 
+import argparse
+import fnmatch
 import os
 import subprocess
 import tempfile
@@ -62,6 +64,48 @@ def render_template(template_str: str, **kwargs) -> str:
     except Exception as e:
         raise ValueError(f"Template rendering error: {e}")
 
+def parse_include_patterns(include_arg: Optional[str]) -> List[str]:
+    """Parse include patterns from command line argument."""
+    if not include_arg:
+        return []
+    
+    # Split by comma and strip whitespace
+    patterns = [pattern.strip() for pattern in include_arg.split(',')]
+    return [pattern for pattern in patterns if pattern]  # Remove empty patterns
+
+def should_include_tool(tool_name: str, include_patterns: List[str]) -> bool:
+    """Check if a tool should be included based on the include patterns."""
+    if not include_patterns:
+        return True  # Include all tools if no patterns specified
+    
+    # Check if tool name matches any of the patterns
+    for pattern in include_patterns:
+        if fnmatch.fnmatch(tool_name, pattern):
+            return True
+    return False
+
+def parse_arguments():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(
+        description="{{ config.server.desc }}",
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    
+    parser.add_argument(
+        '--include',
+        type=str,
+        help='Comma-separated list of tool name patterns to include. '
+             'Uses shell-style wildcards (*, ?, [seq], [!seq]). '
+             'Example: --include=get*,search* would include all tools starting with "get" or "search". '
+             'If not specified, all tools are included.'
+    )
+    
+    return parser.parse_args()
+
+# Parse command line arguments
+args = parse_arguments()
+include_patterns = parse_include_patterns(args.include)
+
 # Initialize FastMCP server
 mcp = FastMCP(name="{{ config.server.name }}")
 
@@ -76,6 +120,7 @@ os.environ["{{ key }}"] = "{{ value }}"
 {% endif %}
 
 {% for tool_name, tool in config.tools.items() %}
+{% if should_include_tool(tool_name, include_patterns) %}
 {% set func_name = tool_name.lower().replace('-', '_') %}
 {% set resolved_args = config.get_resolved_arguments(tool_name) %}
 {% set params_with_defaults = [] %}
@@ -159,11 +204,13 @@ def {{ func_name }}({{ param_str }}) -> Dict[str, Any]:
             "returncode": -1
         }
 
+{% endif %}
 {% endfor %}
 
 {% if config.resources %}
 # Resource handlers
 {% for resource_name, resource in config.resources.items() %}
+{% if should_include_tool(resource_name, include_patterns) %}
 {% set func_name = resource_name.lower().replace('-', '_') %}
 {% set resolved_args = config.get_resolved_resource_arguments(resource_name) %}
 {% set params_with_defaults = [] %}
@@ -250,12 +297,14 @@ def {{ func_name }}({{ param_str }}) -> str:
     except Exception as e:
         raise ValueError(f"Error in {{ resource_name }}: {str(e)}")
 
+{% endif %}
 {% endfor %}
 {% endif %}
 
 {% if config.prompts %}
 # Prompt handlers
 {% for prompt_name, prompt in config.prompts.items() %}
+{% if should_include_tool(prompt_name, include_patterns) %}
 {% set func_name = prompt_name.lower().replace('-', '_') %}
 {% set resolved_args = config.get_resolved_prompt_arguments(prompt_name) %}
 {% set params_with_defaults = [] %}
@@ -342,10 +391,39 @@ def {{ func_name }}({{ param_str }}) -> str:
     except Exception as e:
         raise ValueError(f"Error in {{ prompt_name }}: {str(e)}")
 
+{% endif %}
 {% endfor %}
 {% endif %}
 
 if __name__ == "__main__":
     print(f"Starting {SERVER_NAME} v{SERVER_VERSION}")
     print(f"Description: {SERVER_DESC}")
+    
+    # Show which tools are included
+    if include_patterns:
+        print(f"Include patterns: {', '.join(include_patterns)}")
+        included_tools = []
+        {% for tool_name, tool in config.tools.items() %}
+        if should_include_tool("{{ tool_name }}", include_patterns):
+            included_tools.append("{{ tool_name }}")
+        {% endfor %}
+        {% if config.resources %}
+        {% for resource_name, resource in config.resources.items() %}
+        if should_include_tool("{{ resource_name }}", include_patterns):
+            included_tools.append("{{ resource_name }}")
+        {% endfor %}
+        {% endif %}
+        {% if config.prompts %}
+        {% for prompt_name, prompt in config.prompts.items() %}
+        if should_include_tool("{{ prompt_name }}", include_patterns):
+            included_tools.append("{{ prompt_name }}")
+        {% endfor %}
+        {% endif %}
+        if included_tools:
+            print(f"Included tools: {', '.join(included_tools)}")
+        else:
+            print("No tools match the include patterns")
+    else:
+        print("All tools included (no filtering)")
+    
     mcp.run()
