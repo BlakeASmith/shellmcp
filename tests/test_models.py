@@ -149,6 +149,55 @@ def test_tool_config_with_args():
     assert tool.args[1].type == "boolean"
 
 
+def test_tool_config_with_metadata():
+    """Test tool config with enhanced metadata."""
+    tool = ToolConfig(
+        cmd="echo {{ message }}",
+        desc="Echo a message",
+        name="custom-echo",
+        version="1.2.0",
+        author="Test Author",
+        category="utility",
+        tags=["echo", "test", "utility"],
+        timeout=60,
+        retries=2,
+        examples=[
+            {"description": "Simple echo", "command": "custom-echo --message='Hello'"},
+            {"description": "Echo with variable", "command": "custom-echo --message='$USER'"}
+        ],
+        dependencies=["echo"],
+        permissions=["user:read"]
+    )
+    assert tool.name == "custom-echo"
+    assert tool.version == "1.2.0"
+    assert tool.author == "Test Author"
+    assert tool.category == "utility"
+    assert tool.tags == ["echo", "test", "utility"]
+    assert tool.timeout == 60
+    assert tool.retries == 2
+    assert len(tool.examples) == 2
+    assert tool.dependencies == ["echo"]
+    assert tool.permissions == ["user:read"]
+
+
+def test_tool_config_defaults():
+    """Test tool config with default values for optional fields."""
+    tool = ToolConfig(
+        cmd="echo test",
+        desc="Test tool"
+    )
+    assert tool.name is None
+    assert tool.version is None
+    assert tool.author is None
+    assert tool.category is None
+    assert tool.tags is None
+    assert tool.timeout is None
+    assert tool.retries is None
+    assert tool.examples is None
+    assert tool.dependencies is None
+    assert tool.permissions is None
+
+
 # YMLConfig tests
 
 def test_valid_yml_config():

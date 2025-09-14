@@ -100,6 +100,51 @@ properties:
           description: "Tool-specific environment variables"
           additionalProperties:
             type: string
+        name:
+          type: string
+          description: "Custom tool name (defaults to function name)"
+        version:
+          type: string
+          description: "Tool version"
+        author:
+          type: string
+          description: "Tool author"
+        tags:
+          type: array
+          description: "Tool tags for categorization"
+          items:
+            type: string
+        category:
+          type: string
+          description: "Tool category"
+        timeout:
+          type: integer
+          description: "Tool timeout in seconds (default: 300)"
+        retries:
+          type: integer
+          description: "Number of retries on failure (default: 0)"
+        examples:
+          type: array
+          description: "Usage examples"
+          items:
+            type: object
+            properties:
+              description:
+                type: string
+                description: "Example description"
+              command:
+                type: string
+                description: "Example command"
+        dependencies:
+          type: array
+          description: "Required system dependencies"
+          items:
+            type: string
+        permissions:
+          type: array
+          description: "Required permissions"
+          items:
+            type: string
   
   resources:
     type: object
@@ -640,6 +685,102 @@ prompts:
         default: ""
 ```
 
+## Enhanced Tool Features
+
+### Tool Metadata and Organization
+
+```yaml
+tools:
+  DatabaseBackup:
+    name: "db-backup"  # Custom tool name
+    version: "2.1.0"
+    author: "DevOps Team"
+    category: "database"
+    tags: ["backup", "database", "maintenance"]
+    cmd: "mysqldump {{ database }} > {{ backup_file }}"
+    desc: "Create a database backup"
+    timeout: 600  # 10 minutes
+    retries: 2
+    dependencies: ["mysqldump", "mysql"]
+    permissions: ["database:read", "file:write"]
+    examples:
+      - description: "Backup production database"
+        command: "db-backup --database=prod_db --backup_file=prod_backup.sql"
+      - description: "Backup with timestamp"
+        command: "db-backup --database=test_db --backup_file=test_$(date +%Y%m%d).sql"
+    args:
+      - name: database
+        help: "Database name to backup"
+        type: string
+      - name: backup_file
+        help: "Output backup file path"
+        type: string
+        default: "backup.sql"
+```
+
+### Advanced Tool Configuration
+
+```yaml
+tools:
+  SystemMonitor:
+    name: "system-monitor"
+    version: "1.0.0"
+    author: "System Admin"
+    category: "monitoring"
+    tags: ["system", "monitoring", "health"]
+    cmd: |
+      {% if metric == "cpu" %}
+      top -bn1 | grep "Cpu(s)" | awk '{print $2}' | cut -d'%' -f1
+      {% elif metric == "memory" %}
+      free | grep Mem | awk '{printf "%.2f", $3/$2 * 100.0}'
+      {% elif metric == "disk" %}
+      df -h {{ path or "/" }} | awk 'NR==2{print $5}' | cut -d'%' -f1
+      {% endif %}
+    desc: "Monitor system metrics (CPU, memory, disk usage)"
+    timeout: 30
+    retries: 1
+    dependencies: ["top", "free", "df"]
+    examples:
+      - description: "Check CPU usage"
+        command: "system-monitor --metric=cpu"
+      - description: "Check memory usage"
+        command: "system-monitor --metric=memory"
+      - description: "Check disk usage for specific path"
+        command: "system-monitor --metric=disk --path=/var"
+    args:
+      - name: metric
+        help: "Metric to monitor"
+        type: string
+        choices: ["cpu", "memory", "disk"]
+      - name: path
+        help: "Path for disk usage check"
+        type: string
+        default: "/"
+```
+
+### Tool with Custom Name and Tags
+
+```yaml
+tools:
+  FileSearch:
+    name: "find-files"  # Custom name different from function name
+    tags: ["file", "search", "utility"]
+    cmd: "find {{ path }} -name '{{ pattern }}' -type f"
+    desc: "Search for files matching a pattern"
+    examples:
+      - description: "Find Python files"
+        command: "find-files --path=/home/user --pattern='*.py'"
+    args:
+      - name: path
+        help: "Directory to search"
+        type: string
+        default: "."
+      - name: pattern
+        help: "File pattern to match"
+        type: string
+        default: "*"
+```
+
 ## Best Practices
 
 1. **Use descriptive names**: Choose clear, meaningful names for tools, resources, prompts, and arguments
@@ -651,3 +792,9 @@ prompts:
 7. **Resource URIs**: Use meaningful URIs for resources (e.g., `system://info`, `file://config`)
 8. **Prompt clarity**: Make prompts clear and specific with good structure
 9. **MIME types**: Specify appropriate MIME types for resources when possible
+10. **Use metadata**: Leverage version, author, category, and tags for better organization
+11. **Set timeouts**: Configure appropriate timeouts for long-running operations
+12. **Handle retries**: Use retries for operations that might fail due to temporary issues
+13. **Document dependencies**: List all required system dependencies
+14. **Provide examples**: Include usage examples to help users understand tool functionality
+15. **Specify permissions**: Document required permissions for security and access control

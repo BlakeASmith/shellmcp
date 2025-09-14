@@ -1,0 +1,229 @@
+server:
+  name: "enhanced-mcp-server"
+  desc: "Enhanced MCP server demonstrating new features"
+  version: "2.0.0"
+  env:
+    LOG_LEVEL: "INFO"
+    MAX_CONCURRENT: "10"
+
+args:
+  FilePath:
+    help: "Path to a file or directory"
+    type: string
+    pattern: "^[^\\0]+$"
+  
+  DatabaseName:
+    help: "Database name"
+    type: string
+    pattern: "^[a-zA-Z][a-zA-Z0-9_]*$"
+
+tools:
+  DatabaseBackup:
+    name: "db-backup"
+    version: "2.1.0"
+    author: "DevOps Team"
+    category: "database"
+    tags: ["backup", "database", "maintenance"]
+    cmd: "mysqldump {{ database }} > {{ backup_file }}"
+    desc: "Create a database backup with compression and validation"
+    timeout: 600  # 10 minutes
+    retries: 2
+    dependencies: ["mysqldump", "mysql"]
+    permissions: ["database:read", "file:write"]
+    examples:
+      - description: "Backup production database"
+        command: "db-backup --database=prod_db --backup_file=prod_backup.sql"
+      - description: "Backup with timestamp"
+        command: "db-backup --database=test_db --backup_file=test_$(date +%Y%m%d).sql"
+    args:
+      - name: database
+        help: "Database name to backup"
+        ref: DatabaseName
+      - name: backup_file
+        help: "Output backup file path"
+        ref: FilePath
+        default: "backup.sql"
+
+  SystemMonitor:
+    name: "system-monitor"
+    version: "1.0.0"
+    author: "System Admin"
+    category: "monitoring"
+    tags: ["system", "monitoring", "health"]
+    cmd: |
+      {% if metric == "cpu" %}
+      top -bn1 | grep "Cpu(s)" | awk '{print $2}' | cut -d'%' -f1
+      {% elif metric == "memory" %}
+      free | grep Mem | awk '{printf "%.2f", $3/$2 * 100.0}'
+      {% elif metric == "disk" %}
+      df -h {{ path or "/" }} | awk 'NR==2{print $5}' | cut -d'%' -f1
+      {% endif %}
+    desc: "Monitor system metrics (CPU, memory, disk usage)"
+    timeout: 30
+    retries: 1
+    dependencies: ["top", "free", "df"]
+    examples:
+      - description: "Check CPU usage"
+        command: "system-monitor --metric=cpu"
+      - description: "Check memory usage"
+        command: "system-monitor --metric=memory"
+      - description: "Check disk usage for specific path"
+        command: "system-monitor --metric=disk --path=/var"
+    args:
+      - name: metric
+        help: "Metric to monitor"
+        type: string
+        choices: ["cpu", "memory", "disk"]
+      - name: path
+        help: "Path for disk usage check"
+        type: string
+        default: "/"
+
+  FileSearch:
+    name: "find-files"
+    version: "1.0.0"
+    author: "File System Team"
+    category: "file-system"
+    tags: ["file", "search", "utility"]
+    cmd: "find {{ path }} -name '{{ pattern }}' -type f {% if size %} -size {{ size }}{% endif %}"
+    desc: "Search for files matching a pattern with optional size filtering"
+    timeout: 120
+    retries: 1
+    dependencies: ["find"]
+    examples:
+      - description: "Find Python files"
+        command: "find-files --path=/home/user --pattern='*.py'"
+      - description: "Find large files"
+        command: "find-files --path=/var --pattern='*' --size='+100M'"
+    args:
+      - name: path
+        help: "Directory to search"
+        ref: FilePath
+        default: "."
+      - name: pattern
+        help: "File pattern to match"
+        type: string
+        default: "*"
+      - name: size
+        help: "File size filter (e.g., +100M, -1G)"
+        type: string
+
+  LogAnalyzer:
+    name: "log-analyzer"
+    version: "1.2.0"
+    author: "Monitoring Team"
+    category: "logging"
+    tags: ["logs", "analysis", "debugging"]
+    cmd: |
+      {% if format == "json" %}
+      jq '{{ filter }}' {{ log_file }}
+      {% elif format == "text" %}
+      grep "{{ pattern }}" {{ log_file }} | tail -{{ lines or 100 }}
+      {% else %}
+      tail -{{ lines or 100 }} {{ log_file }}
+      {% endif %}
+    desc: "Analyze log files with various output formats and filtering"
+    timeout: 60
+    retries: 0
+    dependencies: ["jq", "grep", "tail"]
+    permissions: ["file:read"]
+    examples:
+      - description: "Show last 50 lines of error log"
+        command: "log-analyzer --log_file=/var/log/error.log --lines=50"
+      - description: "Filter JSON logs for errors"
+        command: "log-analyzer --log_file=/var/log/app.json --format=json --filter='.level == \"error\"'"
+      - description: "Search for specific pattern"
+        command: "log-analyzer --log_file=/var/log/access.log --format=text --pattern='404'"
+    args:
+      - name: log_file
+        help: "Path to log file"
+        ref: FilePath
+      - name: format
+        help: "Output format"
+        type: string
+        choices: ["text", "json", "raw"]
+        default: "raw"
+      - name: lines
+        help: "Number of lines to show"
+        type: number
+        default: 100
+      - name: pattern
+        help: "Search pattern for text format"
+        type: string
+      - name: filter
+        help: "JQ filter for JSON format"
+        type: string
+
+resources:
+  SystemInfo:
+    uri: "system://info"
+    name: "System Information"
+    description: "Current system information and status"
+    mime_type: "text/plain"
+    cmd: |
+      echo "=== System Information ==="
+      uname -a
+      echo ""
+      echo "=== CPU Info ==="
+      lscpu | grep -E "(Model name|CPU\(s\)|Thread|Core)"
+      echo ""
+      echo "=== Memory Info ==="
+      free -h
+      echo ""
+      echo "=== Disk Usage ==="
+      df -h
+    dependencies: ["uname", "lscpu", "free", "df"]
+
+  ConfigTemplate:
+    uri: "template://{{ template_name }}"
+    name: "Configuration Template"
+    description: "Load configuration template"
+    mime_type: "text/plain"
+    file: "templates/{{ template_name }}.conf"
+    args:
+      - name: template_name
+        help: "Template name"
+        type: string
+        choices: ["nginx", "apache", "mysql", "redis"]
+
+prompts:
+  CodeReview:
+    name: "Code Review Prompt"
+    description: "Generate a comprehensive code review prompt"
+    template: |
+      You are a senior software engineer reviewing the following {{ language }} code:
+      
+      ```{{ language }}
+      {{ code }}
+      ```
+      
+      Please provide a thorough code review focusing on:
+      - Code quality and best practices
+      - Performance implications
+      - Security considerations
+      - Maintainability and readability
+      - Test coverage recommendations
+      
+      {% if focus_areas %}
+      Pay special attention to: {{ focus_areas }}
+      {% endif %}
+      
+      {% if include_examples %}
+      Please provide specific examples of improvements where applicable.
+      {% endif %}
+    args:
+      - name: language
+        help: "Programming language"
+        choices: ["python", "javascript", "java", "go", "rust", "typescript"]
+        default: "python"
+      - name: code
+        help: "Code to review"
+        type: string
+      - name: focus_areas
+        help: "Specific areas to focus on"
+        type: string
+        default: ""
+      - name: include_examples
+        help: "Include improvement examples"
+        type: boolean
+        default: true
