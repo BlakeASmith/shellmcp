@@ -145,12 +145,6 @@ Generate a FastMCP server from YAML configuration.
 shellmcp generate my-server.yml --output-dir ./output --verbose
 ```
 
-## Installation
-
-```bash
-pip install shellmcp
-```
-
 ## Documentation
 
 - [YAML Specification](docs/yml-specification.md)
