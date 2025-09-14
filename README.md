@@ -145,9 +145,53 @@ Generate a FastMCP server from YAML configuration.
 shellmcp generate my-server.yml --output-dir ./output --verbose
 ```
 
+### `shellmcp install-amazonq`
+Install a generated server to AmazonQ MCP configuration.
+
+```bash
+shellmcp install-amazonq my-server.yml
+shellmcp install-amazonq my-server.yml --config-location global --force
+```
+
+### `shellmcp list-amazonq`
+List all installed AmazonQ MCP servers.
+
+```bash
+shellmcp list-amazonq --config-location auto
+```
+
+### `shellmcp uninstall-amazonq`
+Uninstall an AmazonQ MCP server.
+
+```bash
+shellmcp uninstall-amazonq my-server --force
+```
+
+## AmazonQ Integration
+
+ShellMCP provides seamless integration with AmazonQ through automated installation to the `mcp.json` configuration file:
+
+```bash
+# Complete workflow: create → generate → install to AmazonQ
+shellmcp new --name "my-tools" --desc "My custom tools"
+shellmcp add-tool my_tools.yml
+shellmcp generate my_tools.yml
+shellmcp install-amazonq my_tools.yml
+# Restart AmazonQ to load your new server!
+```
+
+The installer automatically:
+- Detects existing AmazonQ MCP configurations
+- Generates proper server configurations
+- Handles multiple configuration locations (global/local/user)
+- Provides server management (install/list/uninstall)
+
+See [AmazonQ Integration Guide](docs/amazonq-integration.md) for detailed documentation.
+
 ## Documentation
 
 - [YAML Specification](docs/yml-specification.md)
+- [AmazonQ Integration](docs/amazonq-integration.md)
 
 ## License
 

@@ -18,6 +18,7 @@ from .models import (
 )
 from .parser import YMLParser
 from .utils import get_choice, get_input, get_yes_no, load_or_create_config, save_config
+from .amazonq_installer import AmazonQInstaller
 
 
 def _handle_error(error_msg: str, verbose: bool = False, exception: Exception = None) -> int:
@@ -536,6 +537,83 @@ def add_prompt(config_file: str, name: str = None, prompt_name: str = None, desc
         return _handle_error(f"Error adding prompt: {e}", exception=e)
 
 
+def install_amazonq(config_file: str, server_path: str = None, config_location: str = "auto", 
+                   python_executable: str = "python3", force: bool = False) -> int:
+    """
+    Install a ShellMCP server to AmazonQ mcp.json configuration.
+    
+    Args:
+        config_file: Path to the YAML configuration file
+        server_path: Path to the generated server.py file (auto-detected if not provided)
+        config_location: Where to save mcp.json (global/local/user_config/auto)
+        python_executable: Python executable to use (default: python3)
+        force: Overwrite existing server configuration
+    
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    try:
+        if not _check_file_exists(config_file):
+            return _handle_error(f"File '{config_file}' not found")
+        
+        # Auto-detect server path if not provided
+        if server_path is None:
+            config_dir = Path(config_file).parent
+            parser = YMLParser()
+            config = parser.load_from_file(config_file)
+            server_name = config.server.name.replace('-', '_').replace(' ', '_').lower()
+            server_path = config_dir / server_name / f"{config.server.name.replace('-', '_')}_server.py"
+            
+            if not Path(server_path).exists():
+                return _handle_error(f"Server file not found at {server_path}. Run 'shellmcp generate {config_file}' first.")
+        
+        installer = AmazonQInstaller()
+        return installer.install_server(
+            config_file, str(server_path), config_location, python_executable, force
+        )
+        
+    except Exception as e:
+        return _handle_error(f"Error installing to AmazonQ: {e}", exception=e)
+
+
+def list_amazonq_servers(config_location: str = "auto") -> int:
+    """
+    List all installed AmazonQ MCP servers.
+    
+    Args:
+        config_location: MCP configuration location to check
+    
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    try:
+        installer = AmazonQInstaller()
+        return installer.list_installed_servers(config_location)
+        
+    except Exception as e:
+        return _handle_error(f"Error listing AmazonQ servers: {e}", exception=e)
+
+
+def uninstall_amazonq_server(server_name: str, config_location: str = "auto", force: bool = False) -> int:
+    """
+    Uninstall an AmazonQ MCP server.
+    
+    Args:
+        server_name: Name of the server to uninstall
+        config_location: MCP configuration location to modify
+        force: Skip confirmation prompt
+    
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    try:
+        installer = AmazonQInstaller()
+        return installer.uninstall_server(server_name, config_location, force)
+        
+    except Exception as e:
+        return _handle_error(f"Error uninstalling AmazonQ server: {e}", exception=e)
+
+
 def main():
     """Main CLI entry point using Fire."""
     fire.Fire({
@@ -544,5 +622,8 @@ def main():
         'new': new,
         'add-tool': add_tool,
         'add-resource': add_resource,
-        'add-prompt': add_prompt
+        'add-prompt': add_prompt,
+        'install-amazonq': install_amazonq,
+        'list-amazonq': list_amazonq_servers,
+        'uninstall-amazonq': uninstall_amazonq_server
     })

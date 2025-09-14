@@ -14,6 +14,7 @@ dependencies = [
     "jinja2>=3.0.0",
     "fire>=0.5.0",
     "questionary>=2.0.0",
+    "click>=8.0.0",
 ]
 
 [project.optional-dependencies]
@@ -34,6 +35,7 @@ shellmcp = ["templates/*.j2"]
 
 [project.scripts]
 shellmcp = "shellmcp.cli:main"
+shellmcp-amazonq = "shellmcp.amazonq_installer:amazonq"
 
 [tool.black]
 line-length = 88
