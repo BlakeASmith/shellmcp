@@ -18,7 +18,7 @@ from .models import (
 )
 from .parser import YMLParser
 from .utils import get_choice, get_input, get_yes_no, load_or_create_config, save_config
-from .amazonq_installer import MCPConfigGenerator
+from .amazonq_installer import generate_mcp_json
 
 
 def _handle_error(error_msg: str, verbose: bool = False, exception: Exception = None) -> int:
@@ -555,8 +555,7 @@ def mcp_json(config_file: str, server_path: str = None, python_executable: str =
         if not _check_file_exists(config_file):
             return _handle_error(f"File '{config_file}' not found")
         
-        generator = MCPConfigGenerator()
-        result = generator.generate_mcp_json(
+        result = generate_mcp_json(
             config_file, server_path, python_executable, output_file
         )
         

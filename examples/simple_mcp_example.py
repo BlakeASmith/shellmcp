@@ -11,6 +11,7 @@ This script shows how to:
 import subprocess
 import sys
 from pathlib import Path
+from shellmcp.amazonq_installer import generate_mcp_json
 
 
 def create_simple_config():
