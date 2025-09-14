@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional
 from fastmcp import FastMCP
 from jinja2 import Template, Environment
 
-def execute_command(cmd: str, env_vars: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
+def execute_command(cmd: str, env_vars: Optional[Dict[str, str]] = None, timeout: int = 300) -> Dict[str, Any]:
     """Execute a shell command and return the result."""
     try:
         # Prepare environment
@@ -24,7 +24,7 @@ def execute_command(cmd: str, env_vars: Optional[Dict[str, str]] = None) -> Dict
             capture_output=True,
             text=True,
             env=env,
-            timeout=300  # 5 minute timeout
+            timeout=timeout
         )
         
         return {
@@ -91,10 +91,28 @@ os.environ["{{ key }}"] = "{{ value }}"
 {% endfor %}
 {% set param_str = (params_without_defaults + params_with_defaults)|join(", ") %}
 
-@mcp.tool()
+{% if tool.name %}
+@mcp.tool(name="{{ tool.name }}"{% if tool.tags %}, tags={{ tool.tags }}{% endif %})
+{% else %}
+@mcp.tool(){% if tool.tags %}
+# Tags: {{ tool.tags|join(', ') }}{% endif %}
+{% endif %}
 def {{ func_name }}({{ param_str }}) -> Dict[str, Any]:
     """
     {{ tool.desc }}
+{% if tool.version or tool.author or tool.category %}
+    
+    Metadata:
+{% if tool.version %}
+    - Version: {{ tool.version }}
+{% endif %}
+{% if tool.author %}
+    - Author: {{ tool.author }}
+{% endif %}
+{% if tool.category %}
+    - Category: {{ tool.category }}
+{% endif %}
+{% endif %}
 {% if tool.help_cmd and help_outputs.get(tool_name) %}
     
     Help:
@@ -119,11 +137,50 @@ def {{ func_name }}({{ param_str }}) -> Dict[str, Any]:
 {% endif %}
 {% endfor %}
 {% endif %}
+{% if tool.examples %}
+    
+    Examples:
+{% for example in tool.examples %}
+    - {{ example.description or 'Example' }}:
+      {{ example.command or 'N/A' }}
+{% endfor %}
+{% endif %}
+{% if tool.dependencies %}
+    
+    Dependencies:
+{% for dep in tool.dependencies %}
+    - {{ dep }}
+{% endfor %}
+{% endif %}
+{% if tool.permissions %}
+    
+    Required Permissions:
+{% for perm in tool.permissions %}
+    - {{ perm }}
+{% endfor %}
+{% endif %}
     
     Returns:
         Dict[str, Any]: Command execution result with 'success', 'stdout', 'stderr', and 'returncode' fields.
     """
     try:
+{% if tool.dependencies %}
+        # Check dependencies
+        missing_deps = []
+{% for dep in tool.dependencies %}
+        try:
+            subprocess.run(["which", "{{ dep }}"], check=True, capture_output=True)
+        except subprocess.CalledProcessError:
+            missing_deps.append("{{ dep }}")
+{% endfor %}
+        if missing_deps:
+            return {
+                "success": False,
+                "stdout": "",
+                "stderr": f"Missing dependencies: {', '.join(missing_deps)}",
+                "returncode": -1
+            }
+{% endif %}
 {% for arg in resolved_args %}
 {% if arg.pattern %}
         # Validate {{ arg.name }} pattern
@@ -141,14 +198,31 @@ def {{ func_name }}({{ param_str }}) -> Dict[str, Any]:
         # Render command template
         cmd = render_template("""{{ tool.cmd|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
         
-        # Execute command
+        # Execute command with retries
         env_vars = {}
 {% if tool.env %}
 {% for key, value in tool.env.items() %}
         env_vars["{{ key }}"] = "{{ value }}"
 {% endfor %}
 {% endif %}
-        result = execute_command(cmd, env_vars)
+        
+        max_retries = {{ tool.retries or 0 }}
+        timeout = {{ tool.timeout or 300 }}
+        
+        for attempt in range(max_retries + 1):
+            try:
+                result = execute_command(cmd, env_vars, timeout=timeout)
+                if result["success"] or attempt == max_retries:
+                    return result
+                else:
+                    if attempt < max_retries:
+                        import time
+                        time.sleep(1)  # Brief delay before retry
+            except Exception as e:
+                if attempt == max_retries:
+                    raise e
+                import time
+                time.sleep(1)  # Brief delay before retry
         
         return result
     except Exception as e:

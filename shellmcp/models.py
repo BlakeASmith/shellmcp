@@ -75,6 +75,18 @@ class ToolConfig(BaseModel):
     args: Optional[List[ToolArgument]] = Field(None, description="Argument definitions")
     env: Optional[Dict[str, str]] = Field(None, description="Tool-specific environment variables")
     
+    # Enhanced metadata fields
+    name: Optional[str] = Field(None, description="Custom tool name (defaults to function name)")
+    version: Optional[str] = Field(None, description="Tool version")
+    author: Optional[str] = Field(None, description="Tool author")
+    tags: Optional[List[str]] = Field(None, description="Tool tags for categorization")
+    category: Optional[str] = Field(None, description="Tool category")
+    timeout: Optional[int] = Field(None, description="Tool timeout in seconds (default: 300)")
+    retries: Optional[int] = Field(None, description="Number of retries on failure (default: 0)")
+    examples: Optional[List[Dict[str, Any]]] = Field(None, description="Usage examples")
+    dependencies: Optional[List[str]] = Field(None, description="Required system dependencies")
+    permissions: Optional[List[str]] = Field(None, description="Required permissions")
+    
     model_config = {"populate_by_name": True}
 
 
