@@ -17,6 +17,7 @@ from .models import (
     YMLConfig,
 )
 from .parser import YMLParser
+from .runner import run_config, get_builtin_config
 from .utils import get_choice, get_input, get_yes_no, load_or_create_config, save_config
 
 
@@ -538,6 +539,49 @@ def add_prompt(config_file: str, name: str = None, prompt_name: str = None, desc
         return _handle_error(f"Error adding prompt: {e}", exception=e)
 
 
+def run(config_name: str = None, config_file: str = None) -> int:
+    """
+    Run an MCP server from a built-in configuration or YAML file.
+    
+    Args:
+        config_name: Name of built-in configuration (e.g., 'basics')
+        config_file: Path to YAML configuration file
+    
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    try:
+        if config_name and config_file:
+            return _handle_error("Cannot specify both config_name and config_file. Use one or the other.")
+        
+        if not config_name and not config_file:
+            return _handle_error("Must specify either config_name (for built-in configs) or config_file (for custom configs)")
+        
+        # Determine which config to use
+        if config_name:
+            # Use built-in configuration
+            try:
+                config_path = get_builtin_config(config_name)
+                print(f"🚀 Starting built-in MCP server: {config_name}")
+                print(f"📁 Configuration: {config_path}")
+            except ValueError as e:
+                return _handle_error(str(e))
+        else:
+            # Use custom configuration file
+            if not _check_file_exists(config_file):
+                return _handle_error(f"Configuration file '{config_file}' not found")
+            
+            config_path = config_file
+            print(f"🚀 Starting MCP server from configuration: {config_file}")
+        
+        # Run the server
+        run_config(config_path)
+        return 0
+        
+    except Exception as e:
+        return _handle_error(f"Error running MCP server: {e}", exception=e)
+
+
 def main():
     """Main CLI entry point using Fire."""
     fire.Fire({
@@ -546,5 +590,6 @@ def main():
         'new': new,
         'add-tool': add_tool,
         'add-resource': add_resource,
-        'add-prompt': add_prompt
+        'add-prompt': add_prompt,
+        'run': run
     })

@@ -12,7 +12,10 @@ Define your tools in YAML, and ShellMCP generates a complete FastMCP server for 
 # Install ShellMCP
 pip install shellmcp
 
-# Create a new server configuration
+# Run a built-in MCP server directly
+shellmcp run basics
+
+# Or create a custom server configuration
 shellmcp new --name "my-server" --desc "My custom MCP server"
 
 # Add a tool interactively
@@ -23,6 +26,9 @@ shellmcp validate my-server.yml
 
 # Generate the FastMCP server
 shellmcp generate my-server.yml
+
+# Or run directly from a YAML file
+shellmcp run --config_file my-server.yml
 ```
 
 ## Features
@@ -102,6 +108,29 @@ prompts:
 ## CLI Commands
 
 ShellMCP provides several commands to help you create and manage MCP servers:
+
+### `shellmcp run`
+Run an MCP server directly from a built-in configuration or YAML file.
+
+```bash
+# Run a built-in configuration
+shellmcp run basics
+
+# Run from a custom YAML file
+shellmcp run --config_file my-server.yml
+```
+
+Built-in configurations:
+- **basics**: Basic shell operations for file system, process management, and system information
+
+The `basics` configuration includes tools for:
+- File operations (list, find, copy, move, delete)
+- Directory management (create, remove, navigate)
+- Process management (list, kill processes)
+- System information (memory, disk, network)
+- Text operations (read, write, search)
+- Resources for system status and environment info
+- Prompts for file analysis and system diagnosis
 
 ### `shellmcp new`
 Create a new server configuration file.
