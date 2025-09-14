@@ -108,7 +108,8 @@ class FastMCPGenerator:
         return template.render(
             config=config, 
             help_outputs=help_outputs,
-            should_include_tool=should_include_tool
+            should_include_tool=should_include_tool,
+            include_patterns=[]  # This will be set at runtime by the generated server
         )
     
     

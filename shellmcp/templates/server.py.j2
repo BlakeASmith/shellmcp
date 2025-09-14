@@ -120,7 +120,6 @@ os.environ["{{ key }}"] = "{{ value }}"
 {% endif %}
 
 {% for tool_name, tool in config.tools.items() %}
-{% if should_include_tool(tool_name, include_patterns) %}
 {% set func_name = tool_name.lower().replace('-', '_') %}
 {% set resolved_args = config.get_resolved_arguments(tool_name) %}
 {% set params_with_defaults = [] %}
@@ -136,82 +135,84 @@ os.environ["{{ key }}"] = "{{ value }}"
 {% endfor %}
 {% set param_str = (params_without_defaults + params_with_defaults)|join(", ") %}
 
-@mcp.tool()
-def {{ func_name }}({{ param_str }}) -> Dict[str, Any]:
-    """
-    {{ tool.desc }}
+# Register tool only if it matches include patterns
+if should_include_tool("{{ tool_name }}", include_patterns):
+    @mcp.tool()
+    def {{ func_name }}({{ param_str }}) -> Dict[str, Any]:
+        """
+        {{ tool.desc }}
 {% if tool.help_cmd and help_outputs.get(tool_name) %}
-    
-    Help:
-{{ help_outputs[tool_name].stdout|indent(4, first=True) }}
+        
+        Help:
+{{ help_outputs[tool_name].stdout|indent(8, first=True) }}
 {% elif tool.help_cmd %}
-    
-    Help: Run `{{ tool.help_cmd }}` for more information.
+        
+        Help: Run `{{ tool.help_cmd }}` for more information.
 {% endif %}
 {% if resolved_args %}
-    
-    Parameters:
+        
+        Parameters:
 {% for arg in resolved_args %}
-    - {{ arg.name }} ({{ arg.type }}): {{ arg.help }}
+        - {{ arg.name }} ({{ arg.type }}): {{ arg.help }}
 {% if arg.default is not none %}
-      Default: {{ arg.default }}
+          Default: {{ arg.default }}
 {% endif %}
 {% if arg.choices %}
-      Allowed values: {{ arg.choices|join(', ') }}
+          Allowed values: {{ arg.choices|join(', ') }}
 {% endif %}
 {% if arg.pattern %}
-      Pattern: {{ arg.pattern }}
+          Pattern: {{ arg.pattern }}
 {% endif %}
 {% endfor %}
 {% endif %}
-    
-    Returns:
-        Dict[str, Any]: Command execution result with 'success', 'stdout', 'stderr', and 'returncode' fields.
-    """
-    try:
+        
+        Returns:
+            Dict[str, Any]: Command execution result with 'success', 'stdout', 'stderr', and 'returncode' fields.
+        """
+        try:
 {% for arg in resolved_args %}
 {% if arg.pattern %}
-        # Validate {{ arg.name }} pattern
-        import re
-        if not re.match(r"{{ arg.pattern }}", str({{ arg.name }})):
-            raise ValueError(f"Invalid {{ arg.name }}: must match pattern {{ arg.pattern }}")
+            # Validate {{ arg.name }} pattern
+            import re
+            if not re.match(r"{{ arg.pattern }}", str({{ arg.name }})):
+                raise ValueError(f"Invalid {{ arg.name }}: must match pattern {{ arg.pattern }}")
 {% endif %}
 {% if arg.choices %}
-        # Validate {{ arg.name }} choices
-        if {{ arg.name }} not in {{ arg.choices }}:
-            raise ValueError(f"Invalid {{ arg.name }}: must be one of {{ arg.choices }}")
+            # Validate {{ arg.name }} choices
+            if {{ arg.name }} not in {{ arg.choices }}:
+                raise ValueError(f"Invalid {{ arg.name }}: must be one of {{ arg.choices }}")
 {% endif %}
 {% endfor %}
-        
-        # Render command template
-        cmd = render_template("""{{ tool.cmd|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
-        
-        # Execute command
-        env_vars = {}
+            
+            # Render command template
+            cmd = render_template("""{{ tool.cmd|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
+            
+            # Execute command
+            env_vars = {}
 {% if tool.env %}
 {% for key, value in tool.env.items() %}
-        env_vars["{{ key }}"] = "{{ value }}"
+            env_vars["{{ key }}"] = "{{ value }}"
 {% endfor %}
 {% endif %}
-        result = execute_command(cmd, env_vars)
-        
-        return result
-    except Exception as e:
-        return {
-            "success": False,
-            "stdout": "",
-            "stderr": f"Error in {{ tool_name }}: {str(e)}",
-            "returncode": -1
-        }
+            result = execute_command(cmd, env_vars)
+            
+            return result
+        except Exception as e:
+            return {
+                "success": False,
+                "stdout": "",
+                "stderr": f"Error in {{ tool_name }}: {str(e)}",
+                "returncode": -1
+            }
 
-{% endif %}
 {% endfor %}
 
 {% if config.resources %}
 # Resource handlers
 {% for resource_name, resource in config.resources.items() %}
-{% if should_include_tool(resource_name, include_patterns) %}
 {% set func_name = resource_name.lower().replace('-', '_') %}
+# Register resource only if it matches include patterns
+if should_include_tool("{{ resource_name }}", include_patterns):
 {% set resolved_args = config.get_resolved_resource_arguments(resource_name) %}
 {% set params_with_defaults = [] %}
 {% set params_without_defaults = [] %}
@@ -226,86 +227,86 @@ def {{ func_name }}({{ param_str }}) -> Dict[str, Any]:
 {% endfor %}
 {% set param_str = (params_without_defaults + params_with_defaults)|join(", ") %}
 
-@mcp.resource("{{ resource.uri|replace('{{ ', '{')|replace(' }}', '}')|replace('{{', '{')|replace('}}', '}') }}")
-def {{ func_name }}({{ param_str }}) -> str:
-    """
-    {{ resource.description or resource.name }}
+    @mcp.resource("{{ resource.uri|replace('{{ ', '{')|replace(' }}', '}')|replace('{{', '{')|replace('}}', '}') }}")
+    def {{ func_name }}({{ param_str }}) -> str:
+            """
+            {{ resource.description or resource.name }}
 {% if resolved_args %}
-    
-    Parameters:
+            
+            Parameters:
 {% for arg in resolved_args %}
-    - {{ arg.name }} ({{ arg.type }}): {{ arg.help }}
+            - {{ arg.name }} ({{ arg.type }}): {{ arg.help }}
 {% if arg.default is not none %}
-      Default: {{ arg.default }}
+              Default: {{ arg.default }}
 {% endif %}
 {% if arg.choices %}
-      Allowed values: {{ arg.choices|join(', ') }}
+              Allowed values: {{ arg.choices|join(', ') }}
 {% endif %}
 {% if arg.pattern %}
-      Pattern: {{ arg.pattern }}
+              Pattern: {{ arg.pattern }}
 {% endif %}
 {% endfor %}
 {% endif %}
-    
-    Returns:
-        str: The resource content.
-    """
-    try:
+            
+            Returns:
+                str: The resource content.
+            """
+            try:
 {% for arg in resolved_args %}
 {% if arg.pattern %}
-        # Validate {{ arg.name }} pattern
-        import re
-        if not re.match(r"{{ arg.pattern }}", str({{ arg.name }})):
-            raise ValueError(f"Invalid {{ arg.name }}: must match pattern {{ arg.pattern }}")
+                # Validate {{ arg.name }} pattern
+                import re
+                if not re.match(r"{{ arg.pattern }}", str({{ arg.name }})):
+                    raise ValueError(f"Invalid {{ arg.name }}: must match pattern {{ arg.pattern }}")
 {% endif %}
 {% if arg.choices %}
-        # Validate {{ arg.name }} choices
-        if {{ arg.name }} not in {{ arg.choices }}:
-            raise ValueError(f"Invalid {{ arg.name }}: must be one of {{ arg.choices }}")
+                # Validate {{ arg.name }} choices
+                if {{ arg.name }} not in {{ arg.choices }}:
+                    raise ValueError(f"Invalid {{ arg.name }}: must be one of {{ arg.choices }}")
 {% endif %}
 {% endfor %}
-        
+                
 {% if resource.text %}
-        # Use direct text content
-        content = render_template("""{{ resource.text|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
+                # Use direct text content
+                content = render_template("""{{ resource.text|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
 {% elif resource.file %}
-        # Read from file
-        file_path = render_template("""{{ resource.file|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-        except FileNotFoundError:
-            raise ValueError(f"Resource file not found: {file_path}")
-        except Exception as e:
-            raise ValueError(f"Error reading resource file {file_path}: {str(e)}")
+                # Read from file
+                file_path = render_template("""{{ resource.file|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                except FileNotFoundError:
+                    raise ValueError(f"Resource file not found: {file_path}")
+                except Exception as e:
+                    raise ValueError(f"Error reading resource file {file_path}: {str(e)}")
 {% else %}
-        # Execute command
-        cmd = render_template("""{{ resource.cmd|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
-        env_vars = {}
+                # Execute command
+                cmd = render_template("""{{ resource.cmd|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
+                env_vars = {}
 {% if resource.env %}
 {% for key, value in resource.env.items() %}
-        env_vars["{{ key }}"] = "{{ value }}"
+                env_vars["{{ key }}"] = "{{ value }}"
 {% endfor %}
 {% endif %}
-        result = execute_command(cmd, env_vars)
-        if not result["success"]:
-            raise ValueError(f"Command failed: {result['stderr']}")
-        content = result["stdout"]
+                result = execute_command(cmd, env_vars)
+                if not result["success"]:
+                    raise ValueError(f"Command failed: {result['stderr']}")
+                content = result["stdout"]
 {% endif %}
-        
-        return content
-    except Exception as e:
-        raise ValueError(f"Error in {{ resource_name }}: {str(e)}")
+                
+                return content
+            except Exception as e:
+                raise ValueError(f"Error in {{ resource_name }}: {str(e)}")
 
-{% endif %}
 {% endfor %}
 {% endif %}
 
 {% if config.prompts %}
 # Prompt handlers
 {% for prompt_name, prompt in config.prompts.items() %}
-{% if should_include_tool(prompt_name, include_patterns) %}
 {% set func_name = prompt_name.lower().replace('-', '_') %}
+# Register prompt only if it matches include patterns
+if should_include_tool("{{ prompt_name }}", include_patterns):
 {% set resolved_args = config.get_resolved_prompt_arguments(prompt_name) %}
 {% set params_with_defaults = [] %}
 {% set params_without_defaults = [] %}
@@ -320,78 +321,77 @@ def {{ func_name }}({{ param_str }}) -> str:
 {% endfor %}
 {% set param_str = (params_without_defaults + params_with_defaults)|join(", ") %}
 
-@mcp.prompt()
-def {{ func_name }}({{ param_str }}) -> str:
-    """
-    {{ prompt.description or prompt.name }}
+    @mcp.prompt()
+    def {{ func_name }}({{ param_str }}) -> str:
+            """
+            {{ prompt.description or prompt.name }}
 {% if resolved_args %}
-    
-    Parameters:
+            
+            Parameters:
 {% for arg in resolved_args %}
-    - {{ arg.name }} ({{ arg.type }}): {{ arg.help }}
+            - {{ arg.name }} ({{ arg.type }}): {{ arg.help }}
 {% if arg.default is not none %}
-      Default: {{ arg.default }}
+              Default: {{ arg.default }}
 {% endif %}
 {% if arg.choices %}
-      Allowed values: {{ arg.choices|join(', ') }}
+              Allowed values: {{ arg.choices|join(', ') }}
 {% endif %}
 {% if arg.pattern %}
-      Pattern: {{ arg.pattern }}
+              Pattern: {{ arg.pattern }}
 {% endif %}
 {% endfor %}
 {% endif %}
-    
-    Returns:
-        str: The generated prompt content.
-    """
-    try:
+            
+            Returns:
+                str: The generated prompt content.
+            """
+            try:
 {% for arg in resolved_args %}
 {% if arg.pattern %}
-        # Validate {{ arg.name }} pattern
-        import re
-        if not re.match(r"{{ arg.pattern }}", str({{ arg.name }})):
-            raise ValueError(f"Invalid {{ arg.name }}: must match pattern {{ arg.pattern }}")
+                # Validate {{ arg.name }} pattern
+                import re
+                if not re.match(r"{{ arg.pattern }}", str({{ arg.name }})):
+                    raise ValueError(f"Invalid {{ arg.name }}: must match pattern {{ arg.pattern }}")
 {% endif %}
 {% if arg.choices %}
-        # Validate {{ arg.name }} choices
-        if {{ arg.name }} not in {{ arg.choices }}:
-            raise ValueError(f"Invalid {{ arg.name }}: must be one of {{ arg.choices }}")
+                # Validate {{ arg.name }} choices
+                if {{ arg.name }} not in {{ arg.choices }}:
+                    raise ValueError(f"Invalid {{ arg.name }}: must be one of {{ arg.choices }}")
 {% endif %}
 {% endfor %}
-        
+                
 {% if prompt.template %}
-        # Use direct template content
-        content = render_template("""{{ prompt.template|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
+                # Use direct template content
+                content = render_template("""{{ prompt.template|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
 {% elif prompt.file %}
-        # Read from file
-        file_path = render_template("""{{ prompt.file|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-        except FileNotFoundError:
-            raise ValueError(f"Prompt file not found: {file_path}")
-        except Exception as e:
-            raise ValueError(f"Error reading prompt file {file_path}: {str(e)}")
+                # Read from file
+                file_path = render_template("""{{ prompt.file|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                except FileNotFoundError:
+                    raise ValueError(f"Prompt file not found: {file_path}")
+                except Exception as e:
+                    raise ValueError(f"Error reading prompt file {file_path}: {str(e)}")
 {% else %}
-        # Execute command
-        cmd = render_template("""{{ prompt.cmd|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
-        env_vars = {}
+                # Execute command
+                cmd = render_template("""{{ prompt.cmd|escape_double_quotes }}""", {% for arg in resolved_args %}{{ arg.name }}={{ arg.name }}{% if not loop.last %}, {% endif %}{% endfor %})
+                env_vars = {}
 {% if prompt.env %}
 {% for key, value in prompt.env.items() %}
-        env_vars["{{ key }}"] = "{{ value }}"
+                env_vars["{{ key }}"] = "{{ value }}"
 {% endfor %}
 {% endif %}
-        result = execute_command(cmd, env_vars)
-        if not result["success"]:
-            raise ValueError(f"Command failed: {result['stderr']}")
-        content = result["stdout"]
+                result = execute_command(cmd, env_vars)
+                if not result["success"]:
+                    raise ValueError(f"Command failed: {result['stderr']}")
+                content = result["stdout"]
 {% endif %}
-        
-        return content
-    except Exception as e:
-        raise ValueError(f"Error in {{ prompt_name }}: {str(e)}")
+                
+                return content
+            except Exception as e:
+                raise ValueError(f"Error in {{ prompt_name }}: {str(e)}")
 
-{% endif %}
 {% endfor %}
 {% endif %}
 
