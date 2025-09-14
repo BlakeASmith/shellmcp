@@ -540,7 +540,7 @@ def add_prompt(config_file: str, name: str = None, prompt_name: str = None, desc
 def install_amazonq(config_file: str, server_path: str = None, config_location: str = "auto", 
                    python_executable: str = "python3", force: bool = False) -> int:
     """
-    Install a ShellMCP server to AmazonQ mcp.json configuration.
+    Add a ShellMCP server to AmazonQ mcp.json configuration.
     
     Args:
         config_file: Path to the YAML configuration file
@@ -573,45 +573,7 @@ def install_amazonq(config_file: str, server_path: str = None, config_location: 
         )
         
     except Exception as e:
-        return _handle_error(f"Error installing to AmazonQ: {e}", exception=e)
-
-
-def list_amazonq_servers(config_location: str = "auto") -> int:
-    """
-    List all installed AmazonQ MCP servers.
-    
-    Args:
-        config_location: MCP configuration location to check
-    
-    Returns:
-        Exit code (0 for success, 1 for failure)
-    """
-    try:
-        installer = AmazonQInstaller()
-        return installer.list_installed_servers(config_location)
-        
-    except Exception as e:
-        return _handle_error(f"Error listing AmazonQ servers: {e}", exception=e)
-
-
-def uninstall_amazonq_server(server_name: str, config_location: str = "auto", force: bool = False) -> int:
-    """
-    Uninstall an AmazonQ MCP server.
-    
-    Args:
-        server_name: Name of the server to uninstall
-        config_location: MCP configuration location to modify
-        force: Skip confirmation prompt
-    
-    Returns:
-        Exit code (0 for success, 1 for failure)
-    """
-    try:
-        installer = AmazonQInstaller()
-        return installer.uninstall_server(server_name, config_location, force)
-        
-    except Exception as e:
-        return _handle_error(f"Error uninstalling AmazonQ server: {e}", exception=e)
+        return _handle_error(f"Error adding to AmazonQ: {e}", exception=e)
 
 
 def main():
@@ -623,7 +585,5 @@ def main():
         'add-tool': add_tool,
         'add-resource': add_resource,
         'add-prompt': add_prompt,
-        'install-amazonq': install_amazonq,
-        'list-amazonq': list_amazonq_servers,
-        'uninstall-amazonq': uninstall_amazonq_server
+        'install-amazonq': install_amazonq
     })

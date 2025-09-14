@@ -1,6 +1,6 @@
 # AmazonQ Integration
 
-ShellMCP provides seamless integration with AmazonQ through automated installation to the `mcp.json` configuration file. This allows you to easily deploy your ShellMCP servers to AmazonQ without manual configuration.
+ShellMCP provides simple automation for adding your generated servers to AmazonQ's `mcp.json` configuration file.
 
 ## Quick Start
 
@@ -16,13 +16,10 @@ ShellMCP provides seamless integration with AmazonQ through automated installati
    shellmcp generate my_tools.yml
    ```
 
-2. **Install to AmazonQ:**
+2. **Add to AmazonQ:**
    ```bash
-   # Auto-install to AmazonQ (detects existing config)
+   # Auto-add to AmazonQ (detects existing config)
    shellmcp install-amazonq my_tools.yml
-   
-   # Or use the dedicated AmazonQ CLI
-   shellmcp-amazonq install my_tools.yml ./my_tools/my_tools_server.py
    ```
 
 3. **Restart AmazonQ** to load your new MCP server!
@@ -35,46 +32,28 @@ ShellMCP automatically detects and uses existing AmazonQ MCP configurations in t
 - **Local**: `./.amazonq/mcp.json` - Project-specific configuration
 - **User Config**: `~/.config/amazonq/mcp.json` - User-specific configuration
 
-## CLI Commands
-
-### ShellMCP Integration Commands
+## Command Usage
 
 ```bash
-# Install server to AmazonQ (auto-detects server path)
+# Add server to AmazonQ (auto-detects server path)
 shellmcp install-amazonq my_tools.yml
 
-# Install with specific server path
+# Add with specific server path
 shellmcp install-amazonq my_tools.yml ./output/my_tools_server.py
 
-# Install to specific config location
+# Add to specific config location
 shellmcp install-amazonq my_tools.yml --config-location global
 
 # Overwrite existing server
 shellmcp install-amazonq my_tools.yml --force
 
-# List installed servers
-shellmcp list-amazonq
-
-# Uninstall a server
-shellmcp uninstall-amazonq my-tools
-```
-
-### Dedicated AmazonQ CLI
-
-```bash
-# Install server
-shellmcp-amazonq install my_tools.yml ./my_tools/my_tools_server.py
-
-# List installed servers
-shellmcp-amazonq list
-
-# Uninstall server
-shellmcp-amazonq uninstall my-tools --force
+# Use different Python executable
+shellmcp install-amazonq my_tools.yml --python-executable python3.11
 ```
 
 ## Example: File Manager Server
 
-Here's a complete example of creating and installing a file manager server:
+Here's a complete example of creating and adding a file manager server:
 
 ### 1. Create Configuration
 
@@ -113,14 +92,6 @@ tools:
       - name: pattern
         help: "Search pattern"
         type: string
-
-resources:
-  system_info:
-    uri: "file:///tmp/system-info.txt"
-    name: "System Information"
-    description: "Current system status and info"
-    cmd: "uname -a && df -h"
-    mime_type: "text/plain"
 ```
 
 ### 2. Generate Server
@@ -129,7 +100,7 @@ resources:
 shellmcp generate file_manager.yml
 ```
 
-### 3. Install to AmazonQ
+### 3. Add to AmazonQ
 
 ```bash
 shellmcp install-amazonq file_manager.yml
@@ -137,7 +108,7 @@ shellmcp install-amazonq file_manager.yml
 
 ### 4. Generated MCP Configuration
 
-The installer automatically creates/updates your `mcp.json`:
+The installer automatically adds to your `mcp.json`:
 
 ```json
 {
@@ -151,30 +122,6 @@ The installer automatically creates/updates your `mcp.json`:
     }
   }
 }
-```
-
-## Advanced Configuration
-
-### Custom Python Executable
-
-```bash
-shellmcp install-amazonq my_tools.yml --python-executable python3.11
-```
-
-### Environment Variables
-
-You can add custom environment variables by modifying the generated server configuration or using the installer's environment handling.
-
-### Multiple Configurations
-
-You can maintain separate configurations for different environments:
-
-```bash
-# Development
-shellmcp install-amazonq my_tools.yml --config-location local
-
-# Production
-shellmcp install-amazonq my_tools.yml --config-location global
 ```
 
 ## Troubleshooting
@@ -211,15 +158,3 @@ If you encounter permission issues:
 3. **Use version control** - Keep your YAML configurations in version control
 4. **Document your tools** - Add clear descriptions for better AmazonQ integration
 5. **Start simple** - Begin with basic tools and expand gradually
-
-## Integration with CI/CD
-
-You can automate the installation process in your CI/CD pipeline:
-
-```bash
-# In your deployment script
-shellmcp generate my_tools.yml
-shellmcp install-amazonq my_tools.yml --config-location global --force
-```
-
-This ensures your ShellMCP servers are automatically deployed to AmazonQ environments.

@@ -35,7 +35,6 @@ shellmcp = ["templates/*.j2"]
 
 [project.scripts]
 shellmcp = "shellmcp.cli:main"
-shellmcp-amazonq = "shellmcp.amazonq_installer:amazonq"
 
 [tool.black]
 line-length = 88
