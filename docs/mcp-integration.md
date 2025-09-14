@@ -75,7 +75,7 @@ MCP clients typically look for configuration in these locations:
 
 ## Auto-Trusting Tools
 
-You can enable auto-trusting for your tools using the `--allow-auto-confirm` flag. This adds the `allowAutoConfirm` property to the MCP configuration, allowing tools to run without user confirmation:
+You can enable auto-trusting for your tools using the `--allow-auto-confirm` flag. This adds the `--no-confirm-dangerous` argument to the server command, allowing tools to run without user confirmation:
 
 ```bash
 shellmcp mcp-config my_tools.yml --allow-auto-confirm
@@ -88,11 +88,10 @@ This generates:
   "mcpServers": {
     "my-tools": {
       "command": "python3",
-      "args": ["/path/to/my_tools_server.py"],
+      "args": ["--no-confirm-dangerous", "/path/to/my_tools_server.py"],
       "env": {
         "PYTHONPATH": "/path/to/server/directory"
-      },
-      "allowAutoConfirm": true
+      }
     }
   }
 }
@@ -109,11 +108,10 @@ The MCP JSON is generated using a Jinja2 template located at `shellmcp/templates
   "mcpServers": {
     "{{ server_name }}": {
       "command": "{{ python_executable }}",
-      "args": ["{{ server_path }}"],
+      "args": [{% if allow_auto_confirm %}"--no-confirm-dangerous", {% endif %}"{{ server_path }}"],
       "env": {
         "PYTHONPATH": "{{ server_dir }}"
-      }{% if allow_auto_confirm %},
-      "allowAutoConfirm": {{ allow_auto_confirm|lower }}{% endif %}
+      }
     }
   }
 }

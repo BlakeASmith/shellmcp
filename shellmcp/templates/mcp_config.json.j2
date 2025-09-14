@@ -2,11 +2,10 @@
   "mcpServers": {
     "{{ server_name }}": {
       "command": "{{ python_executable }}",
-      "args": ["{{ server_path }}"],
+      "args": [{% if allow_auto_confirm %}"--no-confirm-dangerous", {% endif %}"{{ server_path }}"],
       "env": {
         "PYTHONPATH": "{{ server_dir }}"
-      }{% if allow_auto_confirm %},
-      "allowAutoConfirm": {{ allow_auto_confirm|lower }}{% endif %}
+      }
     }
   }
 }
