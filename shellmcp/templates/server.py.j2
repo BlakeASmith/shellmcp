@@ -64,6 +64,17 @@ def render_template(template_str: str, **kwargs) -> str:
     except Exception as e:
         raise ValueError(f"Template rendering error: {e}")
 
+def should_include_tool(tool_name: str, include_patterns: List[str]) -> bool:
+    """Check if a tool should be included based on the include patterns."""
+    if not include_patterns:
+        return True  # Include all tools if no patterns specified
+    
+    # Check if tool name matches any of the patterns
+    for pattern in include_patterns:
+        if fnmatch.fnmatch(tool_name, pattern):
+            return True
+    return False
+
 def parse_include_patterns(include_arg: Optional[str]) -> List[str]:
     """Parse include patterns from command line argument."""
     if not include_arg:

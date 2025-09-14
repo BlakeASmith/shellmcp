@@ -91,26 +91,7 @@ class FastMCPGenerator:
                         }
         
         template = self.jinja_env.get_template('server.py.j2')
-        
-        # Add the should_include_tool function to template context
-        def should_include_tool(tool_name: str, include_patterns: list) -> bool:
-            """Check if a tool should be included based on the include patterns."""
-            if not include_patterns:
-                return True  # Include all tools if no patterns specified
-            
-            # Check if tool name matches any of the patterns
-            import fnmatch
-            for pattern in include_patterns:
-                if fnmatch.fnmatch(tool_name, pattern):
-                    return True
-            return False
-        
-        return template.render(
-            config=config, 
-            help_outputs=help_outputs,
-            should_include_tool=should_include_tool,
-            include_patterns=[]  # This will be set at runtime by the generated server
-        )
+        return template.render(config=config, help_outputs=help_outputs)
     
     
     def generate_requirements(self, output_file: Optional[str] = None) -> str:
