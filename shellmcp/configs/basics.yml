@@ -1,0 +1,218 @@
+server:
+  name: "basics"
+  desc: "Basic shell operations for file system, process management, and system information"
+  version: "1.0.0"
+
+tools:
+  list_files:
+    cmd: "{% if recursive %}find {{ path }} -type f{% else %}ls -la {{ path }}{% endif %}"
+    desc: "List files and directories"
+    args:
+      - name: path
+        help: "Directory or file path"
+        type: string
+        default: "."
+      - name: recursive
+        help: "Include subdirectories recursively"
+        type: boolean
+        default: false
+
+  find_files:
+    cmd: "find {{ path }} -name '{{ pattern }}' -type f"
+    desc: "Find files matching a pattern"
+    args:
+      - name: path
+        help: "Directory or file path"
+        type: string
+        default: "."
+      - name: pattern
+        help: "Search pattern (supports glob patterns)"
+        type: string
+
+  file_info:
+    cmd: "file {{ path }}"
+    desc: "Get detailed file information"
+    args:
+      - name: path
+        help: "Directory or file path"
+        type: string
+        default: "."
+
+  file_size:
+    cmd: "du -h {{ path }}"
+    desc: "Get file or directory size"
+    args:
+      - name: path
+        help: "Directory or file path"
+        type: string
+        default: "."
+
+  create_directory:
+    cmd: "mkdir -p {{ path }}"
+    desc: "Create a directory (including parent directories)"
+    args:
+      - name: path
+        help: "Directory path to create"
+        type: string
+
+  remove_file:
+    cmd: "rm {{ path }}"
+    desc: "Remove a file"
+    args:
+      - name: path
+        help: "Directory or file path"
+        type: string
+        default: "."
+
+  remove_directory:
+    cmd: "rm -rf {{ path }}"
+    desc: "Remove a directory and its contents"
+    args:
+      - name: path
+        help: "Directory or file path"
+        type: string
+        default: "."
+
+  copy_file:
+    cmd: "cp {{ source }} {{ destination }}"
+    desc: "Copy a file"
+    args:
+      - name: source
+        help: "Source file path"
+        type: string
+      - name: destination
+        help: "Destination file path"
+        type: string
+
+  move_file:
+    cmd: "mv {{ source }} {{ destination }}"
+    desc: "Move or rename a file"
+    args:
+      - name: source
+        help: "Source file path"
+        type: string
+      - name: destination
+        help: "Destination file path"
+        type: string
+
+  read_file:
+    cmd: "cat {{ path }}"
+    desc: "Read file contents"
+    args:
+      - name: path
+        help: "Directory or file path"
+        type: string
+        default: "."
+
+  write_file:
+    cmd: "echo '{{ content }}' > {{ path }}"
+    desc: "Write content to a file"
+    args:
+      - name: path
+        help: "Directory or file path"
+        type: string
+        default: "."
+      - name: content
+        help: "Content to write to the file"
+        type: string
+
+  append_file:
+    cmd: "echo '{{ content }}' >> {{ path }}"
+    desc: "Append content to a file"
+    args:
+      - name: path
+        help: "Directory or file path"
+        type: string
+        default: "."
+      - name: content
+        help: "Content to append to the file"
+        type: string
+
+  grep_text:
+    cmd: "grep -r '{{ pattern }}' {{ path }}"
+    desc: "Search for text in files"
+    args:
+      - name: pattern
+        help: "Text pattern to search for"
+        type: string
+      - name: path
+        help: "Directory or file path"
+        type: string
+        default: "."
+
+  process_list:
+    cmd: "ps aux | head -{{ count }}"
+    desc: "List running processes"
+    args:
+      - name: count
+        help: "Number of items to show"
+        type: number
+        default: 10
+
+  process_kill:
+    cmd: "kill {{ pid }}"
+    desc: "Kill a process by PID"
+    args:
+      - name: pid
+        help: "Process ID to kill"
+        type: number
+
+  system_info:
+    cmd: "uname -a && uptime && df -h"
+    desc: "Get system information (OS, uptime, disk usage)"
+
+  memory_info:
+    cmd: "free -h"
+    desc: "Get memory usage information"
+
+  network_info:
+    cmd: "ifconfig || ip addr show"
+    desc: "Get network interface information"
+
+  current_directory:
+    cmd: "pwd"
+    desc: "Get current working directory"
+
+  change_directory:
+    cmd: "cd {{ path }} && pwd"
+    desc: "Change to a directory and show the new path"
+    args:
+      - name: path
+        help: "Directory or file path"
+        type: string
+        default: "."
+
+  environment_vars:
+    cmd: "env | sort"
+    desc: "List all environment variables"
+
+  command_history:
+    cmd: "history | tail -{{ count }}"
+    desc: "Show recent command history"
+    args:
+      - name: count
+        help: "Number of items to show"
+        type: number
+        default: 10
+
+resources:
+  system_status:
+    uri: "system://status"
+    name: "System Status"
+    description: "Current system status and information"
+    mime_type: "text/plain"
+    cmd: "uname -a && echo '---' && uptime && echo '---' && df -h && echo '---' && free -h"
+
+  current_directory_contents:
+    uri: "file://current-directory"
+    name: "Current Directory Contents"
+    description: "Contents of the current working directory"
+    mime_type: "text/plain"
+    cmd: "pwd && echo '---' && ls -la"
+
+  environment:
+    uri: "env://variables"
+    name: "Environment Variables"
+    description: "Current environment variables"
+    mime_type: "text/plain"
+    cmd: "env | sort"

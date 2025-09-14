@@ -4,7 +4,7 @@
 
 ShellMCP is a powerful tool that allows you to easily create Model Context Protocol (MCP) servers by exposing shell commands as structured tools. Instead of granting AI agents full shell access (which poses security risks), ShellMCP enables you to expose only the specific commands you trust, allowing agents to work autonomously with a predefined set of safe operations.
 
-Define your tools in YAML, and ShellMCP generates a complete FastMCP server for you.
+Define your tools in YAML, and ShellMCP generates and runs a complete FastMCP server for you.
 
 ## Quick Start
 
@@ -12,7 +12,10 @@ Define your tools in YAML, and ShellMCP generates a complete FastMCP server for 
 # Install ShellMCP
 pip install shellmcp
 
-# Create a new server configuration
+# Run a built-in MCP server directly
+shellmcp run basics
+
+# Or create a custom server configuration
 shellmcp new --name "my-server" --desc "My custom MCP server"
 
 # Add a tool interactively
@@ -23,18 +26,22 @@ shellmcp validate my-server.yml
 
 # Generate the FastMCP server
 shellmcp generate my-server.yml
+
+# Or run directly from a YAML file
+shellmcp run --config_file my-server.yml
 ```
 
 ## Features
 
-- 🚀 **Simple YAML Configuration**: Define tools, resources, and prompts in clean YAML
+- 🚀 **Simple YAML Configuration**: Define tools and resources in clean YAML
 - 🔧 **Interactive CLI**: Add tools and resources with guided prompts
 - 📝 **Template Support**: Use Jinja2 templates for dynamic command generation
 - ✅ **Validation**: Built-in configuration validation and error checking
-- 🎯 **FastMCP Integration**: Generates production-ready FastMCP servers
-- 📦 **Complete Output**: Includes server code, requirements, and documentation
+- 🎯 **FastMCP Integration**: Generates and runs production-ready FastMCP servers
+- 📦 **Built-in Configurations**: Pre-configured servers ready to run
 - 🔒 **Security-First**: Expose only trusted commands to AI agents
-- 🎨 **Flexible**: Support for tools, resources, and prompts with reusable arguments
+- 🎨 **Flexible**: Support for tools and resources with reusable arguments
+- ⚡ **Instant Execution**: Run servers directly from YAML without generating files
 
 ## Example
 
@@ -102,6 +109,28 @@ prompts:
 ## CLI Commands
 
 ShellMCP provides several commands to help you create and manage MCP servers:
+
+### `shellmcp run`
+Run an MCP server directly from a built-in configuration or YAML file.
+
+```bash
+# Run a built-in configuration
+shellmcp run basics
+
+# Run from a custom YAML file
+shellmcp run --config_file my-server.yml
+```
+
+Built-in configurations:
+- **basics**: Basic shell operations for file system, process management, and system information
+
+The `basics` configuration includes tools for:
+- File operations (list, find, copy, move, delete)
+- Directory management (create, remove, navigate)
+- Process management (list, kill processes)
+- System information (memory, disk, network)
+- Text operations (read, write, search)
+- Resources for system status and environment info
 
 ### `shellmcp new`
 Create a new server configuration file.

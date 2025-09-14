@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "shellmcp"
-version = "1.0.0"
+version = "1.1.0"
 description = "Expose Shell Commands as MCP tools"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -14,6 +14,7 @@ dependencies = [
     "jinja2>=3.0.0",
     "fire>=0.5.0",
     "questionary>=2.0.0",
+    "fastmcp>=0.1.0",
 ]
 
 [project.optional-dependencies]
@@ -30,7 +31,7 @@ where = ["."]
 include = ["shellmcp*"]
 
 [tool.setuptools.package-data]
-shellmcp = ["templates/*.j2"]
+shellmcp = ["templates/*.j2", "configs/*.yml"]
 
 [project.scripts]
 shellmcp = "shellmcp.cli:main"

@@ -17,7 +17,21 @@ from .models import (
     YMLConfig,
 )
 from .parser import YMLParser
+from .generator import FastMCPGenerator
 from .utils import get_choice, get_input, get_yes_no, load_or_create_config, save_config
+
+
+def _get_builtin_config(config_name: str) -> str:
+    """Get path to a built-in configuration file."""
+    from pathlib import Path
+    config_dir = Path(__file__).parent / "configs"
+    config_file = config_dir / f"{config_name}.yml"
+    
+    if not config_file.exists():
+        available_configs = [f.stem for f in config_dir.glob("*.yml")]
+        raise ValueError(f"Built-in config '{config_name}' not found. Available configs: {', '.join(available_configs)}")
+    
+    return str(config_file)
 
 
 def _handle_error(error_msg: str, verbose: bool = False, exception: Exception = None) -> int:
@@ -538,6 +552,81 @@ def add_prompt(config_file: str, name: str = None, prompt_name: str = None, desc
         return _handle_error(f"Error adding prompt: {e}", exception=e)
 
 
+def run(config_name: str = None, config_file: str = None) -> int:
+    """
+    Run an MCP server from a built-in configuration or YAML file.
+    
+    Args:
+        config_name: Name of built-in configuration (e.g., 'basics')
+        config_file: Path to YAML configuration file
+    
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    try:
+        if config_name and config_file:
+            return _handle_error("Cannot specify both config_name and config_file. Use one or the other.")
+        
+        if not config_name and not config_file:
+            return _handle_error("Must specify either config_name (for built-in configs) or config_file (for custom configs)")
+        
+        # Determine which config to use
+        if config_name:
+            # Use built-in configuration
+            try:
+                config_path = _get_builtin_config(config_name)
+                print(f"🚀 Starting built-in MCP server: {config_name}")
+                print(f"📁 Configuration: {config_path}")
+            except ValueError as e:
+                return _handle_error(str(e))
+        else:
+            # Use custom configuration file
+            if not _check_file_exists(config_file):
+                return _handle_error(f"Configuration file '{config_file}' not found")
+            
+            config_path = config_file
+            print(f"🚀 Starting MCP server from configuration: {config_file}")
+        
+        # Generate and run the server
+        _generate_and_run_server(config_path)
+        return 0
+        
+    except Exception as e:
+        return _handle_error(f"Error running MCP server: {e}", exception=e)
+
+
+def _generate_and_run_server(config_file: str):
+    """Generate MCP server code and execute it."""
+    import tempfile
+    import subprocess
+    import os
+    from pathlib import Path
+    
+    # Load and validate configuration
+    parser = YMLParser()
+    config = parser.load_from_file(config_file)
+    
+    # Generate server code
+    generator = FastMCPGenerator()
+    server_code = generator._generate_server_code(config)
+    
+    # Create a temporary file for the server
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+        f.write(server_code)
+        temp_server_file = f.name
+    
+    try:
+        # Execute the generated server
+        print(f"🐍 Executing generated MCP server...")
+        subprocess.run([sys.executable, temp_server_file], check=True)
+    finally:
+        # Clean up temporary file
+        try:
+            os.unlink(temp_server_file)
+        except OSError:
+            pass  # File might already be deleted
+
+
 def main():
     """Main CLI entry point using Fire."""
     fire.Fire({
@@ -546,5 +635,6 @@ def main():
         'new': new,
         'add-tool': add_tool,
         'add-resource': add_resource,
-        'add-prompt': add_prompt
+        'add-prompt': add_prompt,
+        'run': run
     })
