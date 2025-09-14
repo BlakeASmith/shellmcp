@@ -37,27 +37,31 @@ server:
   desc: "File system operations"
   version: "1.0.0"
 
+args:
+  path_arg:
+    help: "Directory path"
+    type: string
+    default: "."
+  pattern_arg:
+    help: "Search pattern"
+    type: string
+
 tools:
   list_files:
     cmd: "ls -la {{path}}"
     desc: "List files in a directory"
     args:
       - name: path
-        help: "Directory path to list"
-        type: string
-        default: "."
+        ref: path_arg
   
   search_files:
     cmd: "find {{path}} -name '{{pattern}}' -type f"
     desc: "Search for files matching a pattern"
     args:
       - name: path
-        help: "Directory to search in"
-        type: string
-        default: "."
+        ref: path_arg
       - name: pattern
-        help: "Filename pattern to match"
-        type: string
+        ref: pattern_arg
 
 resources:
   system_info:
