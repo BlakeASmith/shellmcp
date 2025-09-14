@@ -46,6 +46,38 @@ tools:
         help: "Directory path to list"
         type: string
         default: "."
+  
+  search_files:
+    cmd: "find {{path}} -name '{{pattern}}' -type f"
+    desc: "Search for files matching a pattern"
+    args:
+      - name: path
+        help: "Directory to search in"
+        type: string
+        default: "."
+      - name: pattern
+        help: "Filename pattern to match"
+        type: string
+
+resources:
+  system_info:
+    uri: "system://info"
+    name: "System Information"
+    description: "Current system status and info"
+    cmd: "uname -a && df -h"
+    mime_type: "text/plain"
+
+prompts:
+  file_analysis:
+    name: "File Analysis Assistant"
+    description: "Helps analyze file system contents"
+    template: |
+      Analyze the following file system information:
+      
+      Current directory: {{path}}
+      Files: {{file_list}}
+      
+      Provide insights about the file structure and suggest any organization improvements.
 ```
 
 ## Installation
