@@ -42,7 +42,53 @@ shellmcp validate config.yml
 shellmcp validate config.yml --verbose
 ```
 
-**Output:**
+### `generate`
+
+Generate a FastMCP server from YAML configuration.
+
+```bash
+shellmcp generate <config_file> [--output-dir <dir>] [--verbose]
+```
+
+**Arguments:**
+- `config_file`: Path to the YAML configuration file
+
+**Flags:**
+- `--output-dir`: Optional output directory (defaults to creating a subdirectory with the server name)
+- `--verbose` / `-v`: Show detailed generation information
+
+**Default Behavior:**
+When no `--output-dir` is specified, the generator automatically creates a subdirectory named after the server (with spaces and hyphens converted to underscores). This prevents accidentally overwriting existing files like README.md in your current directory.
+
+**Examples:**
+
+```bash
+# Generate with default output directory (creates ./my-server/ subdirectory)
+shellmcp generate my-server.yml --verbose
+
+# Generate with custom output directory
+shellmcp generate my-server.yml --output-dir ./output --verbose
+```
+
+**Generate Output:**
+
+The `generate` command creates a complete FastMCP server with the following files:
+
+```
+✅ FastMCP server generated successfully!
+📁 Output directory: /path/to/my_mcp_server
+🐍 Server file: /path/to/my_mcp_server/my_mcp_server_server.py
+📦 Requirements: /path/to/my_mcp_server/requirements.txt
+📖 Documentation: /path/to/my_mcp_server/README.md
+
+🚀 To run the server:
+   cd /path/to/my_mcp_server
+   python3 -m venv venv && source venv/bin/activate
+   pip install -r requirements.txt
+   python my_mcp_server_server.py
+```
+
+**Validation Output:**
 
 The `validate` command performs comprehensive validation including:
 

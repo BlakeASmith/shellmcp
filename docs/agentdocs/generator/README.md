@@ -26,12 +26,21 @@ The generator takes a YAML configuration file and produces:
 ### Command Line Interface
 
 ```bash
-# Generate server from YAML configuration
+# Generate server from YAML configuration (creates ./server-name/ subdirectory by default)
 python -m shellmcp.cli generate config.yml --verbose
 
 # Generate with custom output directory
 python -m shellmcp.cli generate config.yml --output-dir ./output --verbose
 ```
+
+**Default Output Directory Behavior**
+
+When no `--output-dir` is specified, the generator automatically creates a subdirectory named after the server (with spaces and hyphens converted to underscores). This prevents accidentally overwriting existing files like README.md in your current directory.
+
+For example, if your server is named "my-mcp-server", the generator will create a `my_mcp_server/` directory containing:
+- `my_mcp_server_server.py` - The generated server
+- `requirements.txt` - Python dependencies
+- `README.md` - Documentation
 
 ### Programmatic Usage
 

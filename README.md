@@ -141,7 +141,13 @@ shellmcp validate my-server.yml --verbose
 ### `shellmcp generate`
 Generate a FastMCP server from YAML configuration.
 
+**Default behavior**: Creates a subdirectory with the server name to prevent overwriting existing files.
+
 ```bash
+# Generate with default output directory (creates ./my-server/ subdirectory)
+shellmcp generate my-server.yml --verbose
+
+# Generate with custom output directory
 shellmcp generate my-server.yml --output-dir ./output --verbose
 ```
 
