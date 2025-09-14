@@ -18,6 +18,7 @@ from .models import (
 )
 from .parser import YMLParser
 from .utils import get_choice, get_input, get_yes_no, load_or_create_config, save_config
+from .mcp_config import generate_mcp_config
 
 
 def _handle_error(error_msg: str, verbose: bool = False, exception: Exception = None) -> int:
@@ -538,6 +539,40 @@ def add_prompt(config_file: str, name: str = None, prompt_name: str = None, desc
         return _handle_error(f"Error adding prompt: {e}", exception=e)
 
 
+def mcp_config(config_file: str, server_path: str = None, python_executable: str = "python3", 
+               output_file: str = None, allow_auto_confirm: bool = False) -> int:
+    """
+    Generate MCP server configuration JSON.
+    
+    Args:
+        config_file: Path to the YAML configuration file
+        server_path: Path to the generated server.py file (auto-detected if not provided)
+        python_executable: Python executable to use (default: python3)
+        output_file: Optional output file path (defaults to stdout)
+        allow_auto_confirm: Enable auto-trusting for tools (default: False)
+    
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    try:
+        if not _check_file_exists(config_file):
+            return _handle_error(f"File '{config_file}' not found")
+        
+        result = generate_mcp_config(
+            config_file, server_path, python_executable, output_file, allow_auto_confirm
+        )
+        
+        if output_file:
+            print(result)
+        else:
+            print(result)
+        
+        return 0
+        
+    except Exception as e:
+        return _handle_error(f"Error generating MCP config: {e}", exception=e)
+
+
 def main():
     """Main CLI entry point using Fire."""
     fire.Fire({
@@ -546,5 +581,6 @@ def main():
         'new': new,
         'add-tool': add_tool,
         'add-resource': add_resource,
-        'add-prompt': add_prompt
+        'add-prompt': add_prompt,
+        'mcp-config': mcp_config
     })

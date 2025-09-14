@@ -151,9 +151,40 @@ shellmcp generate my-server.yml --verbose
 shellmcp generate my-server.yml --output-dir ./output --verbose
 ```
 
+### `shellmcp mcp-config`
+Generate MCP server configuration JSON.
+
+```bash
+shellmcp mcp-config my-server.yml
+shellmcp mcp-config my-server.yml --output-file mcp.json
+shellmcp mcp-config my-server.yml --allow-auto-confirm
+```
+
+## MCP Configuration
+
+ShellMCP can generate MCP server configuration JSON:
+
+```bash
+# Complete workflow: create → generate → get MCP config
+shellmcp new --name "my-tools" --desc "My custom tools"
+shellmcp add-tool my_tools.yml
+shellmcp generate my_tools.yml
+shellmcp mcp-config my_tools.yml
+# Copy the JSON to your MCP client configuration!
+```
+
+The MCP config generator:
+- Auto-detects your generated server file
+- Creates proper MCP server configuration
+- Outputs to stdout or file
+- Uses templates for consistent formatting
+
+See [MCP Integration Guide](docs/mcp-integration.md) for detailed documentation.
+
 ## Documentation
 
 - [YAML Specification](docs/yml-specification.md)
+- [MCP Integration](docs/mcp-integration.md)
 
 ## License
 
