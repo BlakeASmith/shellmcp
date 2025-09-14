@@ -2,8 +2,13 @@
 
 import pytest
 from pydantic import ValidationError
+
 from shellmcp.models import (
-    ArgumentDefinition, ToolArgument, ServerConfig, ToolConfig, YMLConfig
+    ArgumentDefinition,
+    ServerConfig,
+    ToolArgument,
+    ToolConfig,
+    YMLConfig,
 )
 
 

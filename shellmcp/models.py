@@ -1,8 +1,9 @@
 """Pydantic models for YAML configuration parsing."""
 
-from typing import Any, Dict, List, Literal, Optional, Union
-from pydantic import BaseModel, Field, field_validator, model_validator
 import re
+from typing import Any, Dict, List, Literal, Optional, Union
+
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class ArgumentDefinition(BaseModel):
@@ -230,20 +231,20 @@ class YMLConfig(BaseModel):
         """Get fully resolved arguments for a tool, expanding references."""
         if not self.tools or tool_name not in self.tools:
             return []
-        
-        tool = self.tools[tool_name]
-        if not tool.args:
+        return self._resolve_arguments(self.tools[tool_name].args)
+    
+    def _resolve_arguments(self, args: Optional[List[ToolArgument]]) -> List[ToolArgument]:
+        """Helper method to resolve argument references."""
+        if not args:
             return []
         
         resolved_args = []
-        for arg in tool.args:
+        for arg in args:
             if arg.ref:
-                # Resolve reference
                 if not self.args or arg.ref not in self.args:
                     raise ValueError(f"Reference '{arg.ref}' not found in args section")
                 
                 ref_arg = self.args[arg.ref]
-                # Create a new argument with the reference properties
                 resolved_arg = ToolArgument(
                     name=arg.name,
                     help=ref_arg.help,
@@ -262,78 +263,31 @@ class YMLConfig(BaseModel):
         """Get fully resolved arguments for a resource, expanding references."""
         if not self.resources or resource_name not in self.resources:
             return []
-        
-        resource = self.resources[resource_name]
-        if not resource.args:
-            return []
-        
-        resolved_args = []
-        for arg in resource.args:
-            if arg.ref:
-                # Resolve reference
-                if not self.args or arg.ref not in self.args:
-                    raise ValueError(f"Reference '{arg.ref}' not found in args section")
-                
-                ref_arg = self.args[arg.ref]
-                # Create a new argument with the reference properties
-                resolved_arg = ToolArgument(
-                    name=arg.name,
-                    help=ref_arg.help,
-                    type=ref_arg.type,
-                    default=ref_arg.default,
-                    choices=ref_arg.choices,
-                    pattern=ref_arg.pattern
-                )
-                resolved_args.append(resolved_arg)
-            else:
-                resolved_args.append(arg)
-        
-        return resolved_args
+        return self._resolve_arguments(self.resources[resource_name].args)
     
     def get_resolved_prompt_arguments(self, prompt_name: str) -> List[ToolArgument]:
         """Get fully resolved arguments for a prompt, expanding references."""
         if not self.prompts or prompt_name not in self.prompts:
             return []
+        return self._resolve_arguments(self.prompts[prompt_name].args)
+    
+    def _validate_template(self, template_str: str) -> bool:
+        """Helper method to validate Jinja2 template syntax."""
+        if not template_str:
+            return True  # No template to validate
         
-        prompt = self.prompts[prompt_name]
-        if not prompt.args:
-            return []
-        
-        resolved_args = []
-        for arg in prompt.args:
-            if arg.ref:
-                # Resolve reference
-                if not self.args or arg.ref not in self.args:
-                    raise ValueError(f"Reference '{arg.ref}' not found in args section")
-                
-                ref_arg = self.args[arg.ref]
-                # Create a new argument with the reference properties
-                resolved_arg = ToolArgument(
-                    name=arg.name,
-                    help=ref_arg.help,
-                    type=ref_arg.type,
-                    default=ref_arg.default,
-                    choices=ref_arg.choices,
-                    pattern=ref_arg.pattern
-                )
-                resolved_args.append(resolved_arg)
-            else:
-                resolved_args.append(arg)
-        
-        return resolved_args
+        try:
+            from jinja2 import Template
+            Template(template_str)
+            return True
+        except Exception:
+            return False
     
     def validate_jinja2_template(self, tool_name: str) -> bool:
         """Validate that the tool's command contains valid Jinja2 template syntax."""
         if not self.tools or tool_name not in self.tools:
             return False
-        
-        try:
-            from jinja2 import Template
-            template_str = self.tools[tool_name].cmd
-            Template(template_str)
-            return True
-        except Exception:
-            return False
+        return self._validate_template(self.tools[tool_name].cmd)
     
     def validate_resource_jinja2_template(self, resource_name: str) -> bool:
         """Validate that the resource's content contains valid Jinja2 template syntax."""
@@ -342,15 +296,7 @@ class YMLConfig(BaseModel):
         
         resource = self.resources[resource_name]
         template_str = resource.cmd or resource.file or resource.text
-        if not template_str:
-            return True  # No template to validate
-        
-        try:
-            from jinja2 import Template
-            Template(template_str)
-            return True
-        except Exception:
-            return False
+        return self._validate_template(template_str)
     
     def validate_prompt_jinja2_template(self, prompt_name: str) -> bool:
         """Validate that the prompt's content contains valid Jinja2 template syntax."""
@@ -359,33 +305,27 @@ class YMLConfig(BaseModel):
         
         prompt = self.prompts[prompt_name]
         template_str = prompt.cmd or prompt.file or prompt.template
+        return self._validate_template(template_str)
+    
+    def _extract_template_variables(self, template_str: str) -> List[str]:
+        """Helper method to extract template variables from a Jinja2 template."""
         if not template_str:
-            return True  # No template to validate
+            return []
         
         try:
-            from jinja2 import Template
-            Template(template_str)
-            return True
+            from jinja2 import Template, meta
+            template = Template(template_str)
+            ast = template.environment.parse(template_str)
+            variables = meta.find_undeclared_variables(ast)
+            return list(variables)
         except Exception:
-            return False
+            return []
     
     def get_template_variables(self, tool_name: str) -> List[str]:
         """Extract template variables from a tool's command."""
         if not self.tools or tool_name not in self.tools:
             return []
-        
-        try:
-            from jinja2 import Template, meta
-            template_str = self.tools[tool_name].cmd
-            template = Template(template_str)
-            
-            # Get all variables used in the template
-            ast = template.environment.parse(template_str)
-            variables = meta.find_undeclared_variables(ast)
-            
-            return list(variables)
-        except Exception:
-            return []
+        return self._extract_template_variables(self.tools[tool_name].cmd)
     
     def get_resource_template_variables(self, resource_name: str) -> List[str]:
         """Extract template variables from a resource's command, file, or text."""
@@ -394,20 +334,7 @@ class YMLConfig(BaseModel):
         
         resource = self.resources[resource_name]
         template_str = resource.cmd or resource.file or resource.text
-        if not template_str:
-            return []
-        
-        try:
-            from jinja2 import Template, meta
-            template = Template(template_str)
-            
-            # Get all variables used in the template
-            ast = template.environment.parse(template_str)
-            variables = meta.find_undeclared_variables(ast)
-            
-            return list(variables)
-        except Exception:
-            return []
+        return self._extract_template_variables(template_str)
     
     def get_prompt_template_variables(self, prompt_name: str) -> List[str]:
         """Extract template variables from a prompt's command, file, or template."""
@@ -416,19 +343,6 @@ class YMLConfig(BaseModel):
         
         prompt = self.prompts[prompt_name]
         template_str = prompt.cmd or prompt.file or prompt.template
-        if not template_str:
-            return []
-        
-        try:
-            from jinja2 import Template, meta
-            template = Template(template_str)
-            
-            # Get all variables used in the template
-            ast = template.environment.parse(template_str)
-            variables = meta.find_undeclared_variables(ast)
-            
-            return list(variables)
-        except Exception:
-            return []
+        return self._extract_template_variables(template_str)
     
     model_config = {"extra": "forbid"}  # Prevent additional fields not defined in the model

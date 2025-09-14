@@ -1,22 +1,27 @@
 # ShellMCP
 
-**Expose Shell Commands as MCP tools**
+**Expose Shell Commands as MCP Tools**
 
-ShellMCP is a powerful tool that allows you to easily create Model Context Protocol (MCP) servers by exposing shell commands as structured tools. Instead of granting AI agents full shell access (which poses security risks), ShellMCP enables you to expose only the specific commands you trust, allowing agents to work autonomously with a predefined set of safe operations. Define your tools in YAML, and ShellMCP generates a complete FastMCP server for you.
+ShellMCP is a powerful tool that allows you to easily create Model Context Protocol (MCP) servers by exposing shell commands as structured tools. Instead of granting AI agents full shell access (which poses security risks), ShellMCP enables you to expose only the specific commands you trust, allowing agents to work autonomously with a predefined set of safe operations.
+
+Define your tools in YAML, and ShellMCP generates a complete FastMCP server for you.
 
 ## Quick Start
 
 ```bash
-# Install
+# Install ShellMCP
 pip install shellmcp
 
-# Create a new server
+# Create a new server configuration
 shellmcp new --name "my-server" --desc "My custom MCP server"
 
-# Add a tool
+# Add a tool interactively
 shellmcp add-tool my-server.yml
 
-# Generate the server
+# Validate the configuration
+shellmcp validate my-server.yml
+
+# Generate the FastMCP server
 shellmcp generate my-server.yml
 ```
 
@@ -28,6 +33,8 @@ shellmcp generate my-server.yml
 - ✅ **Validation**: Built-in configuration validation and error checking
 - 🎯 **FastMCP Integration**: Generates production-ready FastMCP servers
 - 📦 **Complete Output**: Includes server code, requirements, and documentation
+- 🔒 **Security-First**: Expose only trusted commands to AI agents
+- 🎨 **Flexible**: Support for tools, resources, and prompts with reusable arguments
 
 ## Example
 
@@ -90,6 +97,52 @@ prompts:
       - name: file_list
         help: "List of files to analyze"
         type: string
+```
+
+## CLI Commands
+
+ShellMCP provides several commands to help you create and manage MCP servers:
+
+### `shellmcp new`
+Create a new server configuration file.
+
+```bash
+shellmcp new --name "my-server" --desc "My custom MCP server" --version "1.0.0"
+```
+
+### `shellmcp add-tool`
+Add a new tool to an existing configuration.
+
+```bash
+shellmcp add-tool my-server.yml --name "list-files" --cmd "ls -la {{path}}" --desc "List files in directory"
+```
+
+### `shellmcp add-resource`
+Add a new resource to an existing configuration.
+
+```bash
+shellmcp add-resource my-server.yml --name "system-info" --uri "file:///tmp/system-info.txt" --resource-name "System Information"
+```
+
+### `shellmcp add-prompt`
+Add a new prompt to an existing configuration.
+
+```bash
+shellmcp add-prompt my-server.yml --name "file-analysis" --prompt-name "File Analysis Assistant"
+```
+
+### `shellmcp validate`
+Validate a YAML configuration file.
+
+```bash
+shellmcp validate my-server.yml --verbose
+```
+
+### `shellmcp generate`
+Generate a FastMCP server from YAML configuration.
+
+```bash
+shellmcp generate my-server.yml --output-dir ./output --verbose
 ```
 
 ## Installation
