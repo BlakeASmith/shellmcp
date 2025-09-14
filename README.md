@@ -78,6 +78,14 @@ prompts:
       Files: {{file_list}}
       
       Provide insights about the file structure and suggest any organization improvements.
+    args:
+      - name: path
+        help: "Directory path to analyze"
+        type: string
+        default: "."
+      - name: file_list
+        help: "List of files to analyze"
+        type: string
 ```
 
 ## Installation
