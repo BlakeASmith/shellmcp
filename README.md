@@ -4,7 +4,7 @@
 
 ShellMCP is a powerful tool that allows you to easily create Model Context Protocol (MCP) servers by exposing shell commands as structured tools. Instead of granting AI agents full shell access (which poses security risks), ShellMCP enables you to expose only the specific commands you trust, allowing agents to work autonomously with a predefined set of safe operations.
 
-Define your tools in YAML, and ShellMCP generates a complete FastMCP server for you.
+Define your tools in YAML, and ShellMCP generates and runs a complete FastMCP server for you.
 
 ## Quick Start
 
@@ -33,14 +33,15 @@ shellmcp run --config_file my-server.yml
 
 ## Features
 
-- 🚀 **Simple YAML Configuration**: Define tools, resources, and prompts in clean YAML
+- 🚀 **Simple YAML Configuration**: Define tools and resources in clean YAML
 - 🔧 **Interactive CLI**: Add tools and resources with guided prompts
 - 📝 **Template Support**: Use Jinja2 templates for dynamic command generation
 - ✅ **Validation**: Built-in configuration validation and error checking
-- 🎯 **FastMCP Integration**: Generates production-ready FastMCP servers
-- 📦 **Complete Output**: Includes server code, requirements, and documentation
+- 🎯 **FastMCP Integration**: Generates and runs production-ready FastMCP servers
+- 📦 **Built-in Configurations**: Pre-configured servers ready to run
 - 🔒 **Security-First**: Expose only trusted commands to AI agents
-- 🎨 **Flexible**: Support for tools, resources, and prompts with reusable arguments
+- 🎨 **Flexible**: Support for tools and resources with reusable arguments
+- ⚡ **Instant Execution**: Run servers directly from YAML without generating files
 
 ## Example
 
