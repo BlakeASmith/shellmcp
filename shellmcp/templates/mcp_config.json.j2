@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "{{ server_name }}": {
+      "command": "{{ python_executable }}",
+      "args": ["{{ server_path }}"],
+      "env": {
+        "PYTHONPATH": "{{ server_dir }}"
+      }
+    }
+  }
+}

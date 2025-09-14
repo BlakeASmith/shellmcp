@@ -1,6 +1,6 @@
 # AmazonQ Integration
 
-ShellMCP provides simple automation for adding your generated servers to AmazonQ's `mcp.json` configuration file.
+ShellMCP can generate MCP server configuration JSON for AmazonQ. This allows you to easily add your generated servers to AmazonQ's `mcp.json` configuration file.
 
 ## Quick Start
 
@@ -16,44 +16,36 @@ ShellMCP provides simple automation for adding your generated servers to AmazonQ
    shellmcp generate my_tools.yml
    ```
 
-2. **Add to AmazonQ:**
+2. **Generate MCP JSON configuration:**
    ```bash
-   # Auto-add to AmazonQ (detects existing config)
-   shellmcp install-amazonq my_tools.yml
+   # Output JSON to stdout
+   shellmcp mcp-json my_tools.yml
+   
+   # Or save to file
+   shellmcp mcp-json my_tools.yml --output-file mcp.json
    ```
 
-3. **Restart AmazonQ** to load your new MCP server!
-
-## Configuration Locations
-
-ShellMCP automatically detects and uses existing AmazonQ MCP configurations in the following locations:
-
-- **Global**: `~/.aws/amazonq/mcp.json` - Available system-wide
-- **Local**: `./.amazonq/mcp.json` - Project-specific configuration
-- **User Config**: `~/.config/amazonq/mcp.json` - User-specific configuration
+3. **Add to AmazonQ** by copying the JSON to your `mcp.json` file
 
 ## Command Usage
 
 ```bash
-# Add server to AmazonQ (auto-detects server path)
-shellmcp install-amazonq my_tools.yml
+# Generate JSON and output to stdout
+shellmcp mcp-json my_tools.yml
 
-# Add with specific server path
-shellmcp install-amazonq my_tools.yml ./output/my_tools_server.py
+# Generate JSON and save to file
+shellmcp mcp-json my_tools.yml --output-file mcp.json
 
-# Add to specific config location
-shellmcp install-amazonq my_tools.yml --config-location global
-
-# Overwrite existing server
-shellmcp install-amazonq my_tools.yml --force
+# Use specific server path
+shellmcp mcp-json my_tools.yml --server-path ./output/my_tools_server.py
 
 # Use different Python executable
-shellmcp install-amazonq my_tools.yml --python-executable python3.11
+shellmcp mcp-json my_tools.yml --python-executable python3.11
 ```
 
 ## Example: File Manager Server
 
-Here's a complete example of creating and adding a file manager server:
+Here's a complete example of creating and generating MCP JSON for a file manager server:
 
 ### 1. Create Configuration
 
@@ -100,15 +92,15 @@ tools:
 shellmcp generate file_manager.yml
 ```
 
-### 3. Add to AmazonQ
+### 3. Generate MCP JSON
 
 ```bash
-shellmcp install-amazonq file_manager.yml
+shellmcp mcp-json file_manager.yml
 ```
 
 ### 4. Generated MCP Configuration
 
-The installer automatically adds to your `mcp.json`:
+The command outputs:
 
 ```json
 {
@@ -124,6 +116,53 @@ The installer automatically adds to your `mcp.json`:
 }
 ```
 
+## AmazonQ Configuration Locations
+
+AmazonQ looks for `mcp.json` in these locations:
+
+- **Global**: `~/.aws/amazonq/mcp.json`
+- **Local**: `./.amazonq/mcp.json`
+- **User Config**: `~/.config/amazonq/mcp.json`
+
+## Manual Integration
+
+1. **Generate the JSON:**
+   ```bash
+   shellmcp mcp-json my_tools.yml --output-file mcp_config.json
+   ```
+
+2. **Copy to your AmazonQ config:**
+   ```bash
+   # For local project
+   mkdir -p .amazonq
+   cp mcp_config.json .amazonq/mcp.json
+   
+   # Or merge with existing config
+   # (manually edit your existing mcp.json to add the new server)
+   ```
+
+3. **Restart AmazonQ** to load your new MCP server
+
+## Template Customization
+
+The MCP JSON is generated using a Jinja2 template located at `shellmcp/templates/mcp_config.json.j2`:
+
+```json
+{
+  "mcpServers": {
+    "{{ server_name }}": {
+      "command": "{{ python_executable }}",
+      "args": ["{{ server_path }}"],
+      "env": {
+        "PYTHONPATH": "{{ server_dir }}"
+      }
+    }
+  }
+}
+```
+
+You can modify this template to customize the generated configuration format.
+
 ## Troubleshooting
 
 ### Server Not Found
@@ -132,29 +171,20 @@ If you get a "server file not found" error:
 
 1. Ensure you've run `shellmcp generate` first
 2. Check the server path is correct
-3. Verify the generated server file exists
+3. Use `--server-path` to specify the exact path
 
-### Configuration Not Loading
+### JSON Format Issues
 
-If AmazonQ doesn't load your server:
+If the generated JSON is invalid:
 
-1. Restart AmazonQ after installation
-2. Check the `mcp.json` file format is valid JSON
-3. Verify the server path is accessible
-4. Check AmazonQ logs for error messages
-
-### Permission Issues
-
-If you encounter permission issues:
-
-1. Ensure you have write access to the configuration directory
-2. Try using `--config-location local` for project-specific configs
-3. Check file permissions on the generated server files
+1. Check that your YAML configuration is valid
+2. Verify the server file exists at the specified path
+3. Ensure file paths don't contain special characters
 
 ## Best Practices
 
 1. **Use descriptive server names** - They become identifiers in AmazonQ
-2. **Test your tools locally** - Validate your YAML configuration before installing
-3. **Use version control** - Keep your YAML configurations in version control
-4. **Document your tools** - Add clear descriptions for better AmazonQ integration
-5. **Start simple** - Begin with basic tools and expand gradually
+2. **Test your tools locally** - Validate your YAML configuration before generating JSON
+3. **Use absolute paths** - The generator automatically converts relative paths to absolute
+4. **Version control** - Keep your YAML configurations in version control
+5. **Document your tools** - Add clear descriptions for better AmazonQ integration

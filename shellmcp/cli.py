@@ -18,7 +18,7 @@ from .models import (
 )
 from .parser import YMLParser
 from .utils import get_choice, get_input, get_yes_no, load_or_create_config, save_config
-from .amazonq_installer import AmazonQInstaller
+from .amazonq_installer import MCPConfigGenerator
 
 
 def _handle_error(error_msg: str, verbose: bool = False, exception: Exception = None) -> int:
@@ -537,17 +537,16 @@ def add_prompt(config_file: str, name: str = None, prompt_name: str = None, desc
         return _handle_error(f"Error adding prompt: {e}", exception=e)
 
 
-def install_amazonq(config_file: str, server_path: str = None, config_location: str = "auto", 
-                   python_executable: str = "python3", force: bool = False) -> int:
+def mcp_json(config_file: str, server_path: str = None, python_executable: str = "python3", 
+             output_file: str = None) -> int:
     """
-    Add a ShellMCP server to AmazonQ mcp.json configuration.
+    Generate MCP server configuration JSON for AmazonQ.
     
     Args:
         config_file: Path to the YAML configuration file
         server_path: Path to the generated server.py file (auto-detected if not provided)
-        config_location: Where to save mcp.json (global/local/user_config/auto)
         python_executable: Python executable to use (default: python3)
-        force: Overwrite existing server configuration
+        output_file: Optional output file path (defaults to stdout)
     
     Returns:
         Exit code (0 for success, 1 for failure)
@@ -556,24 +555,20 @@ def install_amazonq(config_file: str, server_path: str = None, config_location: 
         if not _check_file_exists(config_file):
             return _handle_error(f"File '{config_file}' not found")
         
-        # Auto-detect server path if not provided
-        if server_path is None:
-            config_dir = Path(config_file).parent
-            parser = YMLParser()
-            config = parser.load_from_file(config_file)
-            server_name = config.server.name.replace('-', '_').replace(' ', '_').lower()
-            server_path = config_dir / server_name / f"{config.server.name.replace('-', '_')}_server.py"
-            
-            if not Path(server_path).exists():
-                return _handle_error(f"Server file not found at {server_path}. Run 'shellmcp generate {config_file}' first.")
-        
-        installer = AmazonQInstaller()
-        return installer.install_server(
-            config_file, str(server_path), config_location, python_executable, force
+        generator = MCPConfigGenerator()
+        result = generator.generate_mcp_json(
+            config_file, server_path, python_executable, output_file
         )
         
+        if output_file:
+            print(result)
+        else:
+            print(result)
+        
+        return 0
+        
     except Exception as e:
-        return _handle_error(f"Error adding to AmazonQ: {e}", exception=e)
+        return _handle_error(f"Error generating MCP JSON: {e}", exception=e)
 
 
 def main():
@@ -585,5 +580,5 @@ def main():
         'add-tool': add_tool,
         'add-resource': add_resource,
         'add-prompt': add_prompt,
-        'install-amazonq': install_amazonq
+        'mcp-json': mcp_json
     })

@@ -145,32 +145,32 @@ Generate a FastMCP server from YAML configuration.
 shellmcp generate my-server.yml --output-dir ./output --verbose
 ```
 
-### `shellmcp install-amazonq`
-Add a generated server to AmazonQ MCP configuration.
+### `shellmcp mcp-json`
+Generate MCP server configuration JSON for AmazonQ.
 
 ```bash
-shellmcp install-amazonq my-server.yml
-shellmcp install-amazonq my-server.yml --config-location global --force
+shellmcp mcp-json my-server.yml
+shellmcp mcp-json my-server.yml --output-file mcp.json
 ```
 
 ## AmazonQ Integration
 
-ShellMCP provides automated installation to AmazonQ's `mcp.json` configuration file:
+ShellMCP can generate MCP server configuration JSON for AmazonQ:
 
 ```bash
-# Complete workflow: create → generate → add to AmazonQ
+# Complete workflow: create → generate → get MCP JSON
 shellmcp new --name "my-tools" --desc "My custom tools"
 shellmcp add-tool my_tools.yml
 shellmcp generate my_tools.yml
-shellmcp install-amazonq my_tools.yml
-# Restart AmazonQ to load your new server!
+shellmcp mcp-json my_tools.yml
+# Copy the JSON to your AmazonQ mcp.json file!
 ```
 
-The installer automatically:
-- Detects existing AmazonQ MCP configurations
-- Adds your server to the `mcp.json` file
-- Handles multiple configuration locations (global/local/user)
-- Overwrites existing servers with `--force`
+The JSON generator:
+- Auto-detects your generated server file
+- Creates proper MCP server configuration
+- Outputs to stdout or file
+- Uses templates for consistent formatting
 
 See [AmazonQ Integration Guide](docs/amazonq-integration.md) for detailed documentation.
 
