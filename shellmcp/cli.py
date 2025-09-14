@@ -93,7 +93,7 @@ def generate(config_file: str, output_dir: str = None, verbose: bool = False) ->
     
     Args:
         config_file: Path to the YAML configuration file
-        output_dir: Optional output directory (defaults to same directory as config file)
+        output_dir: Optional output directory (defaults to creating a subdirectory with the server name)
         verbose: Show detailed generation information
     
     Returns:
@@ -116,6 +116,8 @@ def generate(config_file: str, output_dir: str = None, verbose: bool = False) ->
         
         # Determine output directory
         if output_dir is None:
+            # Default behavior: create a subdirectory with the server name
+            # This prevents accidentally overwriting existing files like README.md
             config_dir = Path(config_file).parent
             server_name = config.server.name.replace('-', '_').replace(' ', '_').lower()
             output_dir = config_dir / server_name
