@@ -1,8 +1,10 @@
 """Tests for YML parser."""
 
-import pytest
 import tempfile
 from pathlib import Path
+
+import pytest
+
 from shellmcp.parser import YMLParser
 
 

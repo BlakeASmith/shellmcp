@@ -4,10 +4,12 @@ import os
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Dict, Any, Optional, List
-from jinja2 import Template, Environment, FileSystemLoader
-from .parser import YMLParser
+from typing import Any, Dict, List, Optional
+
+from jinja2 import Environment, FileSystemLoader, Template
+
 from .models import YMLConfig
+from .parser import YMLParser
 from .template_utils import get_jinja_filters
 
 
@@ -37,26 +39,29 @@ class FastMCPGenerator:
         Returns:
             Path to the generated server file
         """
-        # Load and validate configuration
-        config = self.parser.load_from_file(config_file)
-        
-        # Generate server code
-        server_code = self._generate_server_code(config)
-        
-        # Determine output path
-        if output_file is None:
-            config_path = Path(config_file)
-            output_file = config_path.parent / f"{config.server.name.replace('-', '_')}_server.py"
-        
-        # Ensure the output directory exists
-        output_path = Path(output_file)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        
-        # Write server file
-        with open(output_file, 'w', encoding='utf-8') as f:
-            f.write(server_code)
-        
-        return str(output_file)
+        try:
+            # Load and validate configuration
+            config = self.parser.load_from_file(config_file)
+            
+            # Generate server code
+            server_code = self._generate_server_code(config)
+            
+            # Determine output path
+            if output_file is None:
+                config_path = Path(config_file)
+                output_file = config_path.parent / f"{config.server.name.replace('-', '_')}_server.py"
+            
+            # Ensure the output directory exists
+            output_path = Path(output_file)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Write server file
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write(server_code)
+            
+            return str(output_file)
+        except Exception as e:
+            raise RuntimeError(f"Failed to generate server: {e}")
     
     def _generate_server_code(self, config: YMLConfig) -> str:
         """Generate FastMCP server code from configuration using Jinja2 templates."""
