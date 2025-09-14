@@ -9,7 +9,8 @@ from .parser import YMLParser
 
 
 def generate_mcp_config(yml_file: str, server_path: str = None, 
-                       python_executable: str = "python3", output_file: str = None) -> str:
+                       python_executable: str = "python3", output_file: str = None,
+                       allow_auto_confirm: bool = False) -> str:
     """
     Generate MCP server configuration JSON.
     
@@ -18,6 +19,7 @@ def generate_mcp_config(yml_file: str, server_path: str = None,
         server_path: Path to the generated server.py file (auto-detected if not provided)
         python_executable: Python executable to use (default: python3)
         output_file: Optional output file path (defaults to stdout)
+        allow_auto_confirm: Enable auto-trusting for tools (default: False)
     
     Returns:
         Generated JSON configuration
@@ -58,7 +60,8 @@ def generate_mcp_config(yml_file: str, server_path: str = None,
         server_name=server_name,
         python_executable=python_executable,
         server_path=server_path,
-        server_dir=server_dir
+        server_dir=server_dir,
+        allow_auto_confirm=allow_auto_confirm
     )
     
     # Parse and pretty-print JSON

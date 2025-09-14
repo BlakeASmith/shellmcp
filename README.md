@@ -151,6 +151,7 @@ Generate MCP server configuration JSON.
 ```bash
 shellmcp mcp-config my-server.yml
 shellmcp mcp-config my-server.yml --output-file mcp.json
+shellmcp mcp-config my-server.yml --allow-auto-confirm
 ```
 
 ## MCP Configuration

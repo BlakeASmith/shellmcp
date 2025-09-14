@@ -538,7 +538,7 @@ def add_prompt(config_file: str, name: str = None, prompt_name: str = None, desc
 
 
 def mcp_config(config_file: str, server_path: str = None, python_executable: str = "python3", 
-               output_file: str = None) -> int:
+               output_file: str = None, allow_auto_confirm: bool = False) -> int:
     """
     Generate MCP server configuration JSON.
     
@@ -547,6 +547,7 @@ def mcp_config(config_file: str, server_path: str = None, python_executable: str
         server_path: Path to the generated server.py file (auto-detected if not provided)
         python_executable: Python executable to use (default: python3)
         output_file: Optional output file path (defaults to stdout)
+        allow_auto_confirm: Enable auto-trusting for tools (default: False)
     
     Returns:
         Exit code (0 for success, 1 for failure)
@@ -556,7 +557,7 @@ def mcp_config(config_file: str, server_path: str = None, python_executable: str
             return _handle_error(f"File '{config_file}' not found")
         
         result = generate_mcp_config(
-            config_file, server_path, python_executable, output_file
+            config_file, server_path, python_executable, output_file, allow_auto_confirm
         )
         
         if output_file:

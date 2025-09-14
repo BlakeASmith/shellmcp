@@ -5,7 +5,8 @@
       "args": ["{{ server_path }}"],
       "env": {
         "PYTHONPATH": "{{ server_dir }}"
-      }
+      }{% if allow_auto_confirm %},
+      "allowAutoConfirm": {{ allow_auto_confirm|lower }}{% endif %}
     }
   }
 }
